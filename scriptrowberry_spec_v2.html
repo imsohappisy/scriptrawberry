@@ -1,0 +1,825 @@
+
+<style>
+  :root {
+    --srb-accent: #D85A30;
+    --srb-accent2: #1D9E75;
+    --srb-accent3: #7F77DD;
+    --srb-mono: 'Courier New', 'Consolas', monospace;
+  }
+  .srb-root { font-family: var(--font-sans); max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  .srb-hero { border-left: 3px solid var(--srb-accent); padding: 1rem 1.5rem; margin-bottom: 3rem; background: var(--color-background-secondary); border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; }
+  .srb-hero h1 { font-size: 26px; font-weight: 500; margin: 0 0 6px; color: var(--color-text-primary); letter-spacing: -0.5px; }
+  .srb-hero .version { font-size: 12px; color: var(--color-text-secondary); font-family: var(--srb-mono); }
+  .srb-hero .tagline { font-size: 14px; color: var(--color-text-secondary); margin-top: 6px; line-height: 1.6; }
+
+  .srb-toc { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 3rem; }
+  .srb-toc h2 { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .srb-toc ol { margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 2rem; }
+  .srb-toc li { font-size: 13px; color: var(--color-text-secondary); line-height: 1.8; }
+  .srb-toc a { color: var(--srb-accent); text-decoration: none; }
+  .srb-toc a:hover { text-decoration: underline; }
+
+  .srb-section { margin-bottom: 3.5rem; scroll-margin-top: 1rem; }
+  .srb-section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 10px; }
+  .srb-section-num { font-size: 12px; font-family: var(--srb-mono); color: var(--srb-accent); font-weight: 500; min-width: 32px; }
+  .srb-section-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+
+  .srb-sub { margin-bottom: 2rem; }
+  .srb-sub-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  .srb-sub-num { font-size: 11px; font-family: var(--srb-mono); color: var(--color-text-secondary); }
+  .srb-p { font-size: 14px; line-height: 1.8; color: var(--color-text-secondary); margin: 0 0 10px; }
+
+  .srb-code { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 1rem 1.25rem; font-family: var(--srb-mono); font-size: 12.5px; line-height: 1.75; color: var(--color-text-primary); margin: 12px 0; overflow-x: auto; white-space: pre; }
+  .srb-code .kw { color: var(--srb-accent3); }
+  .srb-code .ty { color: var(--srb-accent2); }
+  .srb-code .cm { color: var(--color-text-secondary); font-style: italic; }
+  .srb-code .num { color: var(--srb-accent); }
+  .srb-code .str { color: #639922; }
+
+  .srb-badge { display: inline-block; font-size: 11px; font-family: var(--srb-mono); padding: 2px 8px; border-radius: var(--border-radius-md); margin-right: 4px; }
+  .srb-badge.new { background: #EAF3DE; color: #3B6D11; }
+  .srb-badge.warn { background: #FAEEDA; color: #854F0B; }
+  .srb-badge.info { background: #E6F1FB; color: #185FA5; }
+
+  .srb-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  .srb-table th { text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); padding: 8px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .srb-table td { padding: 8px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); font-size: 13px; vertical-align: top; }
+  .srb-table td:first-child { font-family: var(--srb-mono); color: var(--color-text-primary); font-size: 12px; }
+  .srb-table tr:last-child td { border-bottom: none; }
+
+  .srb-callout { border-left: 2px solid var(--srb-accent2); background: var(--color-background-secondary); padding: 10px 14px; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; margin: 12px 0; }
+  .srb-callout.warn { border-color: var(--srb-accent); }
+  .srb-callout.info { border-color: var(--srb-accent3); }
+  .srb-callout p { font-size: 13px; line-height: 1.7; color: var(--color-text-secondary); margin: 0; }
+  .srb-callout .label { font-size: 11px; font-weight: 500; color: var(--srb-accent2); margin-bottom: 4px; font-family: var(--srb-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .srb-callout.warn .label { color: var(--srb-accent); }
+  .srb-callout.info .label { color: var(--srb-accent3); }
+
+  .srb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .srb-card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .srb-card-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 6px; }
+  .srb-card p { font-size: 12.5px; color: var(--color-text-secondary); margin: 0; line-height: 1.7; }
+
+  .srb-formula { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 16px; font-family: var(--srb-mono); font-size: 13px; color: var(--color-text-primary); text-align: center; margin: 10px 0; }
+
+  .srb-pipeline { display: flex; flex-direction: column; gap: 0; margin: 12px 0; }
+  .srb-pipe-step { display: flex; align-items: stretch; }
+  .srb-pipe-label { flex: 1; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); padding: 10px 14px; font-size: 13px; }
+  .srb-pipe-label strong { display: block; font-weight: 500; font-size: 12px; color: var(--color-text-primary); margin-bottom: 2px; }
+  .srb-pipe-label span { font-size: 11.5px; color: var(--color-text-secondary); }
+  .srb-pipe-arrow { display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--color-text-secondary); padding: 4px 0; }
+  .srb-pipe-step:first-child .srb-pipe-label { border-radius: var(--border-radius-md) var(--border-radius-md) 0 0; }
+  .srb-pipe-step:last-child .srb-pipe-label { border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); }
+  .srb-pipe-step:not(:first-child) .srb-pipe-label { border-top: none; }
+
+  .srb-divider { height: 0.5px; background: var(--color-border-tertiary); margin: 2rem 0; }
+
+  @media (max-width: 600px) {
+    .srb-grid2 { grid-template-columns: 1fr; }
+    .srb-toc ol { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="srb-root">
+  <h2 class="sr-only">ScriptRowberry 언어 종합 명세서 v2.0 — 타입 시스템, 컴파일러 아키텍처, 메모리 모델, 모듈 시스템, 에러 처리, 표준 라이브러리를 포함한 완전 확장판.</h2>
+
+  <div class="srb-hero">
+    <h1>🍓 ScriptRowberry Language Specification</h1>
+    <div class="version">v2.0 · 2025 · Status: DRAFT EXTENDED</div>
+    <div class="tagline">JavaScript의 생산성 × Game Boy의 극한 하드웨어 제어 철학 — 비트 레벨 정밀도로 WebAssembly/WebGPU 파이프라인을 구동하는 초경량 시스템 언어의 완전 명세서.</div>
+  </div>
+
+  <div class="srb-toc">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#s1">개요 및 디자인 철학</a></li>
+      <li><a href="#s2">타입 시스템</a></li>
+      <li><a href="#s3">메모리 모델 및 소유권</a></li>
+      <li><a href="#s4">문법 및 리터럴</a></li>
+      <li><a href="#s5">모듈 시스템</a></li>
+      <li><a href="#s6">열거형과 패턴 매칭</a></li>
+      <li><a href="#s7">제네릭 및 트레이트</a></li>
+      <li><a href="#s8">클로저와 함수형 기능</a></li>
+      <li><a href="#s9">컴파일러 최적화 엔진</a></li>
+      <li><a href="#s10">에러 처리 시스템</a></li>
+      <li><a href="#s11">JS 인터롭</a></li>
+      <li><a href="#s12">듀얼 타겟 파이프라인</a></li>
+      <li><a href="#s13">표준 라이브러리</a></li>
+      <li><a href="#s14">빌드 시스템</a></li>
+      <li><a href="#s15">예외 및 엣지 케이스</a></li>
+    </ol>
+  </div>
+
+  <div class="srb-section" id="s1">
+    <div class="srb-section-header">
+      <span class="srb-section-num">01</span>
+      <h2 class="srb-section-title">개요 및 디자인 철학</h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">1.1</span> 하드웨어 제어의 재해석 (Retro-Hardware Paradigm)</div>
+      <p class="srb-p">1989년의 게임보이는 4.19MHz CPU와 8KB RAM이라는 극소 자원으로 구동되었습니다. 당시 개발자들이 레지스터를 바이트 미만 단위로 쪼개던 트릭을 현대적 AOT 컴파일러 기술로 자동화하는 것이 ScriptRowberry의 궁극적 지향점입니다. 동시에, 현대 웹 생태계와의 완전한 호환성을 통해 즉시 배포 가능한 결과물을 생성합니다.</p>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">1.2</span> 5대 핵심 설계 원칙</div>
+      <div class="srb-grid2">
+        <div class="srb-card">
+          <div class="srb-card-title">① 비트 레벨 주권 (Bit-Level Sovereignty)</div>
+          <p>변수가 표현해야 하는 상태의 개수를 추론하여 물리적으로 최소인 비트 공간만 할당. 컴파일러가 N-비트 타입을 자동 선택.</p>
+        </div>
+        <div class="srb-card">
+          <div class="srb-card-title">② 제로 비용 추상화 (Zero-Cost Abstractions)</div>
+          <p>모든 고수준 편의 문법은 컴파일 타임에 완벽히 전개(Expansion)되어 런타임 오버헤드 0%. 추상화를 사용한다고 성능 손실이 없음.</p>
+        </div>
+        <div class="srb-card">
+          <div class="srb-card-title">③ GC-Free 선형 메모리</div>
+          <p>가비지 컬렉션으로 인한 런타임 스톱을 원천 배제. 정적 구조체 기반의 통짜 선형 메모리 구조를 강제하며, 소유권 규칙으로 안전성 보장.</p>
+        </div>
+        <div class="srb-card">
+          <div class="srb-card-title">④ 정적 타입 완전성 (Static Type Completeness)</div>
+          <p>모든 타입 오류는 컴파일 타임에 검출. 런타임 타입 에러는 언어 설계상 불가능하도록 보장.</p>
+        </div>
+        <div class="srb-card" style="grid-column: span 2;">
+          <div class="srb-card-title">⑤ JS 생태계 1급 시민 인터롭 (First-Class JS Interop)</div>
+          <p>기존 JavaScript/TypeScript 코드베이스와 마찰 없이 통합. SRB 함수는 JS에서 직접 임포트 가능하며, JS 콜백을 SRB 내부에서 안전하게 호출할 수 있음.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s2">
+    <div class="srb-section-header">
+      <span class="srb-section-num">02</span>
+      <h2 class="srb-section-title">타입 시스템</h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">2.1</span> 임의 비트 정수형 (Custom-Width Integers)</div>
+      <p class="srb-p">부호 없는 정수 <code>uN</code>과 부호 있는 정수 <code>iN</code>을 지원하며, N은 1 이상 32 이하의 임의 정수입니다.</p>
+      <table class="srb-table">
+        <thead><tr><th>타입</th><th>범위 공식</th><th>예시 (N=3)</th></tr></thead>
+        <tbody>
+          <tr><td>uN</td><td>[0, 2ᴺ − 1]</td><td>u3 → [0, 7], 8가지 표현</td></tr>
+          <tr><td>iN</td><td>[−2ᴺ⁻¹, 2ᴺ⁻¹ − 1]</td><td>i3 → [−4, 3]</td></tr>
+          <tr><td>u32 / i32</td><td>하드웨어 가속 표준형</td><td>Wasm 네이티브 지원</td></tr>
+          <tr><td>f32</td><td>IEEE 754 단정밀도</td><td>GPU 친화적 부동소수점</td></tr>
+          <tr><td>bool</td><td>{false, true}</td><td>내부적으로 u1과 동일</td></tr>
+        </tbody>
+      </table>
+      <div class="srb-callout">
+        <div class="label">최소 비트 추론 규칙</div>
+        <p>고유 상태 K개가 필요할 때, 컴파일러는 2ᴺ⁻¹ &lt; K ≤ 2ᴺ 를 만족하는 최소 N을 자동 선택. K=5이면 N=3 (u3). 개발자가 명시하지 않아도 컴파일러가 추론 가능.</p>
+      </div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">2.2</span> 정적 구조체 및 메모리 레이아웃</div>
+      <div class="srb-code"><span class="kw">struct</span> <span class="ty">ObjectState</span> {
+    id:       <span class="ty">u16</span>;   <span class="cm">// 16비트 — 객체 고유 식별자 (0~65535)</span>
+    active:   <span class="ty">u1</span>;    <span class="cm">// 1비트  — 활성/비활성 플래그</span>
+    category: <span class="ty">u3</span>;    <span class="cm">// 3비트  — 최대 8종 카테고리</span>
+    priority: <span class="ty">u4</span>;    <span class="cm">// 4비트  — 0~15 우선순위 레벨</span>
+}
+<span class="cm">// 실제 비트 합계: 16+1+3+4 = 24비트 = 3바이트
+// 컴파일러가 바이트 정렬 처리 → 32비트(4바이트)로 패딩 가능
+// 패킹 최적화 시 여러 ObjectState를 하나의 레지스터에 압축 가능</span></div>
+
+      <div class="srb-callout warn">
+        <div class="label">패딩(Padding) 규칙 — 보완 명세</div>
+        <p>구조체 필드의 비트 합계가 32의 배수가 아닐 경우, <code>@packed</code> 어노테이션이 없는 한 컴파일러는 다음 32비트 경계까지 0-패딩을 삽입합니다. <code>@packed struct</code>를 명시하면 패딩을 생략하고 비트 단위 밀집 배치를 강제하나, 정렬 비용이 증가할 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">2.3</span> 포인터 및 참조 타입 <span class="srb-badge new">신규</span></div>
+      <p class="srb-p">GC-Free 환경에서 안전한 메모리 참조를 위해 두 종류의 참조 타입을 제공합니다.</p>
+      <div class="srb-code"><span class="cm">// 불변 참조 — 읽기 전용, 여러 곳에서 동시 참조 가능</span>
+<span class="kw">let</span> r: &<span class="ty">ObjectState</span> = &obj;
+
+<span class="cm">// 가변 참조 — 한 시점에 하나만 존재 가능 (소유권 규칙)</span>
+<span class="kw">let</span> rm: &<span class="kw">mut</span> <span class="ty">ObjectState</span> = &<span class="kw">mut</span> obj;
+
+<span class="cm">// 원시 포인터 — unsafe 블록 내에서만 역참조 가능</span>
+<span class="kw">let</span> p: *<span class="ty">u32</span> = <span class="num">0x2000</span> as *<span class="ty">u32</span>; <span class="cm">// 하드웨어 메모리 주소 직접 접근</span></div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">2.4</span> 정적 배열 (Fixed-Length Array) <span class="srb-badge new">신규</span></div>
+      <div class="srb-code"><span class="cm">// 크기가 컴파일 타임에 확정되는 배열만 허용</span>
+<span class="kw">let</span> palette: [<span class="ty">u3</span>; <span class="num">8</span>] = [<span class="num">0b3</span>, <span class="num">1b3</span>, <span class="num">2b3</span>, <span class="num">3b3</span>, <span class="num">4b3</span>, <span class="num">5b3</span>, <span class="num">6b3</span>, <span class="num">7b3</span>];
+
+<span class="cm">// GPU 버퍼용 대형 정적 배열 — 힙 영역에 컴파일 타임 배치</span>
+<span class="kw">static</span> TILEMAP: [<span class="ty">u8</span>; <span class="num">1024</span>] = [<span class="num">0</span>; <span class="num">1024</span>]; <span class="cm">// 0으로 초기화된 1024개의 u8</span></div>
+      <div class="srb-callout">
+        <div class="label">설계 근거</div>
+        <p>동적 크기 배열(<code>Vec</code> 같은 구조)은 힙 할당을 요구합니다. ScriptRowberry는 힙 할당을 언어 레벨에서 완전히 배제하므로, 배열 크기는 반드시 컴파일 타임 상수여야 합니다. 런타임에 가변 크기 컬렉션이 필요한 경우, 최대 크기를 정적 선언한 후 실제 사용량을 별도 <code>u32</code>로 추적하는 패턴을 사용합니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s3">
+    <div class="srb-section-header">
+      <span class="srb-section-num">03</span>
+      <h2 class="srb-section-title">메모리 모델 및 소유권 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">3.1</span> 선형 메모리 구조</div>
+      <p class="srb-p">ScriptRowberry는 WebAssembly의 선형 메모리(Linear Memory) 위에서 동작합니다. 전체 메모리는 컴파일 타임에 결정된 하나의 연속 바이트 배열이며, 런타임에 크기를 변경할 수 없습니다 (<code>--wasm-pages</code> 빌드 옵션으로 페이지 수 고정). 이를 통해 GC 없이 결정론적 메모리 동작을 보장합니다.</p>
+      <div class="srb-formula">
+        총 메모리 = wasm_pages × 65536 bytes (64KB/page)
+      </div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">3.2</span> 소유권 규칙 (Ownership Rules)</div>
+      <p class="srb-p">GC-Free 언어에서 메모리 안전성을 보장하기 위해 컴파일 타임에 강제되는 소유권 3원칙을 따릅니다.</p>
+      <div class="srb-code"><span class="cm">// 규칙 1: 모든 값은 정확히 하나의 소유자(owner)를 가진다</span>
+<span class="kw">let</span> a: <span class="ty">u32</span> = <span class="num">42</span>;
+<span class="kw">let</span> b = a;  <span class="cm">// u32는 Copy 타입 → 복사됨, a는 여전히 유효</span>
+
+<span class="kw">let</span> s1: <span class="ty">ObjectState</span> = ObjectState { id: <span class="num">1</span>, active: <span class="num">1b1</span>, category: <span class="num">3b3</span>, priority: <span class="num">5b4</span> };
+<span class="kw">let</span> s2 = s1;  <span class="cm">// 소유권 이동(Move) — s1은 더 이상 접근 불가</span>
+<span class="cm">// s1.id;  ← 컴파일 에러: use of moved value 's1'</span>
+
+<span class="cm">// 규칙 2: 불변 참조는 동시에 여러 개 허용</span>
+<span class="kw">let</span> r1 = &s2;
+<span class="kw">let</span> r2 = &s2; <span class="cm">// OK — 동시 불변 참조 허용</span>
+
+<span class="cm">// 규칙 3: 가변 참조는 동시에 하나만 존재</span>
+<span class="kw">let</span> rm = &<span class="kw">mut</span> s2;
+<span class="cm">// let rm2 = &mut s2;  ← 컴파일 에러: cannot borrow as mutable twice</span></div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">3.3</span> Copy 트레이트와 Move 시맨틱</div>
+      <p class="srb-p">원시 정수 타입(<code>uN</code>, <code>iN</code>, <code>f32</code>, <code>bool</code>)은 자동으로 <code>Copy</code> 트레이트를 구현하므로 대입 시 비트 단위 복사가 발생합니다. <code>Copy</code>를 구현하지 않는 구조체는 소유권 이동(Move) 시맨틱을 따릅니다. 구조체에 <code>@derive(Copy)</code>를 명시하면 컴파일러가 모든 필드가 Copy 타입인지 검증한 후 자동 구현합니다.</p>
+      <div class="srb-code"><span class="kw">@derive</span>(Copy)
+<span class="kw">struct</span> <span class="ty">Vec2</span> {
+    x: <span class="ty">f32</span>;
+    y: <span class="ty">f32</span>;
+}
+<span class="cm">// Vec2는 이제 Copy — 대입 시 자동 복사, 원본 유효</span></div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s4">
+    <div class="srb-section-header">
+      <span class="srb-section-num">04</span>
+      <h2 class="srb-section-title">문법 및 리터럴</h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">4.1</span> 비트 리터럴 접미사</div>
+      <table class="srb-table">
+        <thead><tr><th>리터럴 표현</th><th>의미</th><th>이진 표현</th></tr></thead>
+        <tbody>
+          <tr><td>4b3</td><td>3비트 공간의 숫자 4</td><td>100₂</td></tr>
+          <tr><td>12b4</td><td>4비트 공간의 숫자 12</td><td>1100₂</td></tr>
+          <tr><td>0xFF_u8</td><td>16진수 리터럴 with 타입 힌트</td><td>1111_1111₂</td></tr>
+          <tr><td>0b1010_u4</td><td>2진수 리터럴 with 타입 힌트</td><td>1010₂</td></tr>
+          <tr><td>42</td><td>접미사 없음 → 문맥에 따라 추론</td><td>i32 기본값으로 추론</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">4.2</span> 제어 구문 전체 목록 <span class="srb-badge new">확장</span></div>
+      <div class="srb-code"><span class="cm">// ① 함수 선언 — 파라미터·반환 타입 명시 필수</span>
+<span class="kw">fn</span> computeNext(state: <span class="ty">u3</span>, delta: <span class="ty">u2</span>): <span class="ty">u3</span> {
+    <span class="kw">return</span> state + (delta <span class="kw">as</span> <span class="ty">u3</span>);
+}
+
+<span class="cm">// ② 블록 스코프 변수</span>
+<span class="kw">let</span> x: <span class="ty">u3</span> = <span class="num">5b3</span>;
+<span class="kw">let</span> <span class="kw">mut</span> counter: <span class="ty">u32</span> = <span class="num">0</span>;  <span class="cm">// mut 없으면 불변(immutable)</span>
+
+<span class="cm">// ③ 조건 분기 — 블록은 값을 반환 가능</span>
+<span class="kw">let</span> label = <span class="kw">if</span> x > <span class="num">4b3</span> { <span class="str">"high"</span> } <span class="kw">else</span> { <span class="str">"low"</span> };
+
+<span class="cm">// ④ 카운팅 루프 — 컴파일 타임 상수 범위만 허용 (루프 전개 가능)</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="num">0</span>..<span class="num">8</span> {
+    counter = counter + <span class="num">1</span>;
+}
+
+<span class="cm">// ⑤ while 루프 — 조건 분기가 있는 루프</span>
+<span class="kw">while</span> counter < <span class="num">100</span> {
+    counter = counter + <span class="num">1</span>;
+}
+
+<span class="cm">// ⑥ unsafe 블록 — 원시 포인터 연산, 인라인 Wasm 삽입 허용</span>
+<span class="kw">unsafe</span> {
+    <span class="kw">let</span> raw: *<span class="ty">u8</span> = <span class="num">0x8000</span> as *<span class="ty">u8</span>;
+    *raw = <span class="num">0xFF</span>;
+}</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">4.3</span> 컴파일 타임 상수 및 어노테이션 <span class="srb-badge new">신규</span></div>
+      <div class="srb-code"><span class="cm">// const — 컴파일 타임에 완전히 평가되는 상수, LUT 생성에 사용</span>
+<span class="kw">const</span> MAX_SPRITES: <span class="ty">u16</span> = <span class="num">512</span>;
+<span class="kw">const</span> TILE_SIZE: <span class="ty">u8</span> = <span class="num">8</span>;
+<span class="kw">const</span> SCREEN_W: <span class="ty">u16</span> = MAX_SPRITES * TILE_SIZE as <span class="ty">u16</span>;  <span class="cm">// 상수 산술 허용</span>
+
+<span class="cm">// @inline — 함수 인라이닝 강제 지시 (컴파일러 힌트)</span>
+<span class="kw">@inline</span>
+<span class="kw">fn</span> clamp3(v: <span class="ty">u3</span>): <span class="ty">u3</span> { <span class="kw">return</span> v & <span class="num">7b4</span>; }
+
+<span class="cm">// @no_inline — 코드 크기 절약을 위해 인라이닝 금지</span>
+<span class="kw">@no_inline</span>
+<span class="kw">fn</span> expensiveSetup(): <span class="ty">u32</span> { ... }
+
+<span class="cm">// @export — 이 함수를 Wasm export 테이블에 노출 (JS에서 호출 가능)</span>
+<span class="kw">@export</span>
+<span class="kw">fn</span> tick(dt: <span class="ty">f32</span>): <span class="ty">u32</span> { ... }</div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s5">
+    <div class="srb-section-header">
+      <span class="srb-section-num">05</span>
+      <h2 class="srb-section-title">모듈 시스템 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">5.1</span> 파일 기반 모듈</div>
+      <p class="srb-p">각 <code>.srb</code> 파일은 독립적인 모듈입니다. 모듈 경계는 파일 시스템 디렉토리 구조를 그대로 반영합니다.</p>
+      <div class="srb-code"><span class="cm">// src/graphics/sprite.srb</span>
+<span class="kw">pub struct</span> <span class="ty">Sprite</span> {       <span class="cm">// pub — 모듈 외부에서 접근 가능</span>
+    x: <span class="ty">u16</span>;
+    y: <span class="ty">u16</span>;
+    tile_id: <span class="ty">u8</span>;
+}
+
+<span class="kw">pub fn</span> draw(s: &<span class="ty">Sprite</span>): <span class="ty">u1</span> { ... }
+<span class="kw">fn</span> _internal(): <span class="ty">u32</span> { ... }  <span class="cm">// pub 없으면 모듈 내부에서만 접근</span>
+
+<span class="cm">// src/main.srb</span>
+<span class="kw">use</span> graphics::sprite::{<span class="ty">Sprite</span>, draw};  <span class="cm">// 선택적 임포트</span>
+<span class="kw">use</span> graphics::sprite::*;               <span class="cm">// 와일드카드 임포트 (권장하지 않음)</span>
+
+<span class="kw">@export</span>
+<span class="kw">fn</span> main(): <span class="ty">u32</span> {
+    <span class="kw">let</span> s = <span class="ty">Sprite</span> { x: <span class="num">10</span>, y: <span class="num">20</span>, tile_id: <span class="num">3</span> };
+    draw(&s);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">5.2</span> 조건부 컴파일 (Conditional Compilation)</div>
+      <div class="srb-code"><span class="cm">// @cfg — 빌드 플래그에 따라 코드 블록 포함 여부 결정</span>
+<span class="kw">@cfg</span>(target = <span class="str">"wasm"</span>)
+<span class="kw">fn</span> platformInit(): <span class="ty">u32</span> {
+    <span class="cm">// Wasm 전용 초기화 로직</span>
+    <span class="kw">return</span> <span class="num">1</span>;
+}
+
+<span class="kw">@cfg</span>(target = <span class="str">"gpu"</span>)
+<span class="kw">fn</span> platformInit(): <span class="ty">u32</span> {
+    <span class="cm">// GPU 타겟 전용 초기화 로직</span>
+    <span class="kw">return</span> <span class="num">2</span>;
+}
+
+<span class="kw">@cfg</span>(debug = <span class="str">"true"</span>)
+<span class="kw">fn</span> debugDump(state: &<span class="ty">ObjectState</span>): <span class="ty">u32</span> {
+    <span class="cm">// 릴리즈 빌드에서는 컴파일러가 이 함수를 완전히 제거</span>
+    ...
+}</div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s6">
+    <div class="srb-section-header">
+      <span class="srb-section-num">06</span>
+      <h2 class="srb-section-title">열거형과 패턴 매칭 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">6.1</span> 비트 최적화 열거형 (Enum)</div>
+      <p class="srb-p">열거형의 배리언트 수로부터 컴파일러가 최소 비트 표현을 자동 계산합니다. 5종류의 배리언트가 있다면 <code>u3</code>으로 표현합니다.</p>
+      <div class="srb-code"><span class="kw">enum</span> <span class="ty">Direction</span> {  <span class="cm">// 4종 → 컴파일러가 u2로 최적화</span>
+    North,  <span class="cm">// = 0b00</span>
+    South,  <span class="cm">// = 0b01</span>
+    East,   <span class="cm">// = 0b10</span>
+    West,   <span class="cm">// = 0b11</span>
+}
+
+<span class="kw">enum</span> <span class="ty">GameState</span> {  <span class="cm">// 데이터를 품는 배리언트 — Tagged Union</span>
+    Loading { progress: <span class="ty">u8</span> },
+    Playing { score: <span class="ty">u32</span>, lives: <span class="ty">u3</span> },
+    GameOver { final_score: <span class="ty">u32</span> },
+    Paused,
+}
+<span class="cm">// 총 4종 → 태그는 u2. 최대 페이로드 크기에 맞춰 유니온 메모리 계산.</span></div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">6.2</span> 패턴 매칭 (match)</div>
+      <p class="srb-p"><code>match</code> 구문은 열거형의 모든 배리언트를 커버해야 하며, 누락 시 컴파일 에러가 발생합니다 (Exhaustiveness Check). 컴파일러는 <code>match</code>를 LUT 또는 점프 테이블로 최적화합니다.</p>
+      <div class="srb-code"><span class="kw">fn</span> update(gs: <span class="ty">GameState</span>): <span class="ty">GameState</span> {
+    <span class="kw">match</span> gs {
+        <span class="ty">GameState</span>::Loading { progress } <span class="kw">if</span> progress >= <span class="num">100</span> => {
+            <span class="ty">GameState</span>::Playing { score: <span class="num">0</span>, lives: <span class="num">3b3</span> }
+        },
+        <span class="ty">GameState</span>::Loading { progress } => {
+            <span class="ty">GameState</span>::Loading { progress: progress + <span class="num">1</span> }
+        },
+        <span class="ty">GameState</span>::Playing { score, lives: <span class="num">0b3</span> } => {
+            <span class="ty">GameState</span>::GameOver { final_score: score }
+        },
+        <span class="ty">GameState</span>::Playing { score, lives } => {
+            <span class="ty">GameState</span>::Playing { score: score + <span class="num">10</span>, lives }
+        },
+        <span class="ty">GameState</span>::GameOver { .. } | <span class="ty">GameState</span>::Paused => gs,
+    }
+}</div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s7">
+    <div class="srb-section-header">
+      <span class="srb-section-num">07</span>
+      <h2 class="srb-section-title">제네릭 및 트레이트 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">7.1</span> 트레이트 (Trait) 정의</div>
+      <p class="srb-p">트레이트는 타입이 반드시 구현해야 하는 인터페이스를 정의합니다. 컴파일 타임에 정적 디스패치로 해소되므로 런타임 vtable 비용이 없습니다.</p>
+      <div class="srb-code"><span class="kw">trait</span> <span class="ty">Drawable</span> {
+    <span class="kw">fn</span> draw(&self, x: <span class="ty">u16</span>, y: <span class="ty">u16</span>): <span class="ty">u1</span>;
+    <span class="kw">fn</span> bounding_bits(): <span class="ty">u8</span>;  <span class="cm">// 정적 메서드 (self 없음)</span>
+}
+
+<span class="kw">impl</span> <span class="ty">Drawable</span> <span class="kw">for</span> <span class="ty">Sprite</span> {
+    <span class="kw">fn</span> draw(&self, x: <span class="ty">u16</span>, y: <span class="ty">u16</span>): <span class="ty">u1</span> {
+        <span class="cm">// 실제 타일 렌더링 로직</span>
+        <span class="kw">return</span> <span class="num">1b1</span>;
+    }
+    <span class="kw">fn</span> bounding_bits(): <span class="ty">u8</span> { <span class="kw">return</span> <span class="num">8</span>; }
+}</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">7.2</span> 제네릭 함수와 단형화 (Monomorphization)</div>
+      <div class="srb-code"><span class="cm">// T는 반드시 Copy 트레이트를 구현해야 함 (제약 조건)</span>
+<span class="kw">fn</span> swap&lt;<span class="ty">T: Copy</span>&gt;(a: <span class="ty">T</span>, b: <span class="ty">T</span>): (<span class="ty">T</span>, <span class="ty">T</span>) {
+    <span class="kw">return</span> (b, a);
+}
+
+<span class="cm">// 컴파일러는 실제 사용된 타입마다 전용 코드를 생성 (단형화)</span>
+<span class="cm">// swap::<span class="ty">u3</span>(), swap::<span class="ty">u16</span>() 각각 별도 최적화</span>
+<span class="kw">let</span> (y, x) = swap::&lt;<span class="ty">u3</span>&gt;(<span class="num">3b3</span>, <span class="num">5b3</span>);
+
+<span class="cm">// 제네릭 구조체</span>
+<span class="kw">struct</span> <span class="ty">Pair</span>&lt;<span class="ty">A: Copy</span>, <span class="ty">B: Copy</span>&gt; {
+    first: <span class="ty">A</span>;
+    second: <span class="ty">B</span>;
+}</div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s8">
+    <div class="srb-section-header">
+      <span class="srb-section-num">08</span>
+      <h2 class="srb-section-title">클로저와 함수형 기능 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">8.1</span> 클로저 캡처 규칙</div>
+      <p class="srb-p">ScriptRowberry의 클로저는 동적 힙 할당 없이 스택 또는 정적 메모리에 배치됩니다. 캡처 방식은 캡처된 변수의 타입에 따라 컴파일러가 결정합니다.</p>
+      <div class="srb-code"><span class="kw">let</span> base: <span class="ty">u3</span> = <span class="num">2b3</span>;
+
+<span class="cm">// Copy 타입은 자동으로 값 캡처 (비트 복사)</span>
+<span class="kw">let</span> add_base = |x: <span class="ty">u3</span>| -> <span class="ty">u3</span> { x + base };
+
+<span class="cm">// gpu_map 클로저 — GPU 셰이더로 변환됨</span>
+<span class="cm">// 캡처 변수는 GPU 유니폼(Uniform) 버퍼로 자동 바인딩됨</span>
+<span class="kw">let</span> result = data.gpu_map(|x: <span class="ty">u3</span>| -> <span class="ty">u3</span> { x + <span class="num">1b3</span> });
+
+<span class="cm">// 고차 함수 — 제네릭으로 구현 (런타임 함수 포인터 없음)</span>
+<span class="kw">fn</span> map_array&lt;<span class="ty">T: Copy</span>, <span class="ty">U: Copy</span>, <span class="ty">F: Fn(T) -> U</span>&gt;(
+    arr: &[<span class="ty">T</span>; <span class="num">8</span>], f: <span class="ty">F</span>
+): [<span class="ty">U</span>; <span class="num">8</span>] { ... }</div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s9">
+    <div class="srb-section-header">
+      <span class="srb-section-num">09</span>
+      <h2 class="srb-section-title">컴파일러 최적화 엔진</h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">9.1</span> 전체 컴파일 파이프라인</div>
+      <div class="srb-pipeline">
+        <div class="srb-pipe-step"><div class="srb-pipe-label"><strong>① Lexer &amp; Tokenizer</strong><span>비트 접미사 파싱, ASI 처리, 16진·2진 리터럴 인식</span></div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-arrow">↓</div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-label"><strong>② Parser &amp; AST 생성</strong><span>구문 트리 빌드, 타입 추론(Hindley-Milner 변형), 리터럴 오버플로우 검사</span></div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-arrow">↓</div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-label"><strong>③ 소유권·차용 검사기 (Borrow Checker)</strong><span>라이프타임 분석, 이중 해방 방지, 댕글링 참조 차단 — 컴파일 타임 완결</span></div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-arrow">↓</div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-label"><strong>④ 중간 표현 (IR) 생성</strong><span>SSA 형식 변환, 타입별 단형화 인스턴스 생성, 상수 폴딩</span></div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-arrow">↓</div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-label"><strong>⑤ 최적화 패스 (Game Boy식)</strong><span>비트 마스킹 주입, 비트 패킹, 루프 전개, LUT 생성, 인라이닝, 데드 코드 제거</span></div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-arrow">↓</div></div>
+        <div class="srb-pipe-step"><div class="srb-pipe-label"><strong>⑥ 코드 생성기 (Emitter)</strong><span>--target=wasm → WebAssembly SIMD / --target=gpu → WGSL 셰이더</span></div></div>
+      </div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">9.2</span> 비트 마스킹 (Bit-Masking)</div>
+      <p class="srb-p">현대 CPU에 3비트 레지스터는 없습니다. 임의 비트 연산에서 경계 보장을 위해 컴파일러가 AND 마스크를 자동 주입합니다.</p>
+      <div class="srb-formula">uN 타입의 마스크 = 2ᴺ − 1 &nbsp;&nbsp;|&nbsp;&nbsp; u3 마스크 = 7 (0111₂)</div>
+      <div class="srb-code"><span class="cm">// 개발자 코드</span>
+<span class="kw">let</span> a: <span class="ty">u3</span> = <span class="num">6b3</span>;
+<span class="kw">let</span> b: <span class="ty">u3</span> = <span class="num">3b3</span>;
+<span class="kw">let</span> c = a + b;  <span class="cm">// 개발자는 그냥 더하기만 씀</span>
+
+<span class="cm">// 컴파일러가 생성하는 실제 Wasm 코드 (의사 코드)</span>
+<span class="cm">// (6 + 3) & 7 = 9 & 7 = 1001₂ & 0111₂ = 0001₂ = 1</span>
+<span class="cm">// 3비트 범위 내에서 자동 순환 — 딜레이 없이 하드웨어 레벨 처리</span></div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">9.3</span> 비트 패킹 (Register Packing)</div>
+      <div class="srb-code"><span class="cm">// u3 변수 10개 → 3×10 = 30비트 → 32비트 레지스터 1개에 압축</span>
+<span class="kw">let</span> states: [<span class="ty">u3</span>; <span class="num">10</span>] = [...];
+
+<span class="cm">// 컴파일러 내부 표현 (의사 Wasm)</span>
+<span class="cm">// packed_reg: u32 = state[0] | (state[1] << 3) | (state[2] << 6) | ...</span>
+<span class="cm">// 메모리 로드 1회로 10개 상태 동시 취득 → 메모리 대역폭 10배 향상</span>
+
+<span class="cm">// SIMD 최적화 시 u4 × 32개 = 128비트 레지스터 1회 연산으로 처리</span>
+<span class="cm">// u32 기준으로는 동일 크기에 4개뿐 → 8배 병렬성 향상</span></div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">9.4</span> LUT 컴파일 (Look-Up Table)</div>
+      <div class="srb-code"><span class="cm">// 빌드 타임에 자동 LUT 생성 트리거 조건:
+// - 입력 도메인이 컴파일 타임에 유한하게 확정 가능한 경우
+// - 분기(match/if)가 3단계 이상 중첩된 경우
+// - @lut 어노테이션을 명시한 경우</span>
+
+<span class="kw">@lut</span>
+<span class="kw">fn</span> complexMapping(x: <span class="ty">u4</span>): <span class="ty">u8</span> {
+    <span class="cm">// 이 함수는 빌드 시 16개 항목(u4의 모든 경우)의 배열로 구워짐</span>
+    <span class="cm">// 런타임: 배열[x] 인덱스 접근만 발생 → 상수 시간 O(1) 보장</span>
+    <span class="kw">match</span> x {
+        <span class="num">0b4</span> => <span class="num">255</span>, <span class="num">1b4</span> => <span class="num">128</span>, <span class="num">2b4</span> => <span class="num">64</span>,
+        _ => x as <span class="ty">u8</span> * <span class="num">3</span>
+    }
+}</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">9.5</span> 데드 코드 제거 (DCE) 및 전체 프로그램 최적화 <span class="srb-badge new">신규</span></div>
+      <p class="srb-p">컴파일러는 전체 프로그램을 하나의 단위로 분석하여 실제로 실행 경로에 도달하지 않는 코드를 완전히 제거합니다. <code>@export</code>가 없는 함수는 외부 호출 가능성이 없으므로 참조 그래프 분석 후 미사용 함수를 바이너리에서 배제합니다. 결과 Wasm 파일은 사용된 코드만 포함합니다.</p>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s10">
+    <div class="srb-section-header">
+      <span class="srb-section-num">10</span>
+      <h2 class="srb-section-title">에러 처리 시스템 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">10.1</span> Result 타입 기반 에러 전파</div>
+      <p class="srb-p">예외(Exception)는 런타임 오버헤드가 있으며 제어 흐름을 예측 불가능하게 만듭니다. ScriptRowberry는 에러를 값으로 취급하는 <code>Result&lt;T, E&gt;</code> 패턴을 채택합니다. 런타임 예외 메커니즘은 존재하지 않습니다.</p>
+      <div class="srb-code"><span class="kw">enum</span> <span class="ty">ParseError</span> {
+    Overflow,
+    InvalidRange { min: <span class="ty">u32</span>, max: <span class="ty">u32</span>, got: <span class="ty">u32</span> },
+    UnexpectedEof,
+}
+
+<span class="kw">fn</span> parseSprite(data: &[<span class="ty">u8</span>; <span class="num">4</span>]): <span class="ty">Result</span>&lt;<span class="ty">Sprite</span>, <span class="ty">ParseError</span>&gt; {
+    <span class="kw">if</span> data[<span class="num">0</span>] > <span class="num">200</span> {
+        <span class="kw">return</span> <span class="ty">Err</span>(<span class="ty">ParseError</span>::InvalidRange { min: <span class="num">0</span>, max: <span class="num">200</span>, got: data[<span class="num">0</span>] as <span class="ty">u32</span> });
+    }
+    <span class="kw">return</span> <span class="ty">Ok</span>(<span class="ty">Sprite</span> { x: data[<span class="num">0</span>] as <span class="ty">u16</span>, y: data[<span class="num">1</span>] as <span class="ty">u16</span>, tile_id: data[<span class="num">2</span>] });
+}
+
+<span class="cm">// ? 연산자 — 에러 조기 반환 단축 문법 (JS의 try-catch 없이)</span>
+<span class="kw">fn</span> loadScene(): <span class="ty">Result</span>&lt;<span class="ty">u32</span>, <span class="ty">ParseError</span>&gt; {
+    <span class="kw">let</span> s = parseSprite(&[<span class="num">10</span>, <span class="num">20</span>, <span class="num">3</span>, <span class="num">0</span>])?;  <span class="cm">// 에러면 즉시 return Err(...)</span>
+    <span class="kw">return</span> <span class="ty">Ok</span>(s.x as <span class="ty">u32</span>);
+}</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">10.2</span> 컴파일 타임 에러 분류</div>
+      <table class="srb-table">
+        <thead><tr><th>에러 코드</th><th>발생 조건</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td>E001: LiteralOverflow</td><td>리터럴 값이 타입 최댓값 초과</td><td>let x: u3 = 8b3</td></tr>
+          <tr><td>E002: ImplicitCast</td><td>서로 다른 비트 타입 간 암묵적 연산</td><td>u3 + u4 직접 연산</td></tr>
+          <tr><td>E003: UseAfterMove</td><td>소유권 이동 후 원본 접근</td><td>move 후 원본 변수 사용</td></tr>
+          <tr><td>E004: MultipleMutBorrow</td><td>가변 참조 동시 2개 이상</td><td>&mut x 두 번 빌림</td></tr>
+          <tr><td>E005: NonExhaustiveMatch</td><td>match에서 배리언트 누락</td><td>enum 케이스 미처리</td></tr>
+          <tr><td>E006: UnsafeOutsideBlock</td><td>unsafe 연산을 일반 블록에서 시도</td><td>원시 포인터 역참조</td></tr>
+          <tr><td>E007: DynamicSizeArray</td><td>런타임 크기 배열 선언 시도</td><td>let arr: [u8; n] (n이 변수)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s11">
+    <div class="srb-section-header">
+      <span class="srb-section-num">11</span>
+      <h2 class="srb-section-title">JavaScript 인터롭 <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">11.1</span> JS → SRB 호출 (Export)</div>
+      <div class="srb-code"><span class="cm">// ScriptRowberry 측 — @export 함수가 Wasm 인스턴스에 노출됨</span>
+<span class="kw">@export</span>
+<span class="kw">fn</span> tick(dt: <span class="ty">f32</span>): <span class="ty">u32</span> {
+    <span class="cm">// 게임 루프 업데이트</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="cm">// JavaScript 측 — 일반 Wasm 호출 방식 그대로</span></div>
+      <div class="srb-code"><span class="cm">// JS 코드</span>
+<span class="kw">const</span> { instance } = await WebAssembly.instantiateStreaming(
+  fetch(<span class="str">'game.wasm'</span>)
+);
+instance.exports.tick(<span class="num">16.67</span>);  <span class="cm">// f32 인자 직접 전달</span></div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">11.2</span> SRB → JS 호출 (Import)</div>
+      <div class="srb-code"><span class="cm">// SRB 측 — @import로 JS 함수를 선언만 함 (구현은 JS에 있음)</span>
+<span class="kw">@import</span>(<span class="str">"env"</span>, <span class="str">"log"</span>)
+<span class="kw">fn</span> js_log(value: <span class="ty">u32</span>): <span class="ty">u32</span>;  <span class="cm">// 구현 없음 — JS에서 제공</span>
+
+<span class="kw">@export</span>
+<span class="kw">fn</span> debugMe(): <span class="ty">u32</span> {
+    js_log(<span class="num">42</span>);  <span class="cm">// Wasm → JS 역방향 호출</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}</div>
+      <div class="srb-code"><span class="cm">// JS 측 — importObject로 구현 제공</span>
+<span class="kw">const</span> importObject = {
+  env: {
+    log: (v) => console.log(<span class="str">`SRB says: ${v}`</span>)
+  }
+};
+<span class="kw">const</span> { instance } = await WebAssembly.instantiateStreaming(
+  fetch(<span class="str">'game.wasm'</span>), importObject
+);</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">11.3</span> 공유 메모리 버퍼 접근</div>
+      <p class="srb-p">구조체 배열 같은 복잡 데이터는 Wasm 선형 메모리를 통해 JS와 제로 복사로 공유합니다.</p>
+      <div class="srb-code"><span class="cm">// SRB 측 — 공유 버퍼 시작 주소 노출</span>
+<span class="kw">static</span> SPRITES: [<span class="ty">ObjectState</span>; <span class="num">512</span>] = [ObjectState::default(); <span class="num">512</span>];
+
+<span class="kw">@export</span>
+<span class="kw">fn</span> getSpritesPtr(): <span class="ty">u32</span> { <span class="kw">return</span> &SPRITES as <span class="ty">u32</span>; }
+<span class="kw">@export</span>
+<span class="kw">fn</span> getSpritesLen(): <span class="ty">u32</span> { <span class="kw">return</span> <span class="num">512</span>; }
+
+<span class="cm">// JS 측 — 같은 메모리를 TypedArray로 직접 뷰잉</span></div>
+      <div class="srb-code"><span class="kw">const</span> ptr = instance.exports.getSpritesPtr();
+<span class="kw">const</span> len = instance.exports.getSpritesLen();
+<span class="cm">// Uint32Array로 뷰 — 복사 없음, 실시간 반영</span>
+<span class="kw">const</span> spritesView = <span class="kw">new</span> Uint32Array(instance.exports.memory.buffer, ptr, len);</div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s12">
+    <div class="srb-section-header">
+      <span class="srb-section-num">12</span>
+      <h2 class="srb-section-title">듀얼 타겟 파이프라인</h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">12.1</span> CPU 타겟: WebAssembly SIMD</div>
+      <table class="srb-table">
+        <thead><tr><th>데이터 타입</th><th>128비트 레지스터에 몇 개?</th><th>JS 대비 속도</th></tr></thead>
+        <tbody>
+          <tr><td>u32 (일반 JS Number)</td><td>4개</td><td>기준 (1×)</td></tr>
+          <tr><td>u16</td><td>8개</td><td>~2×</td></tr>
+          <tr><td>u8</td><td>16개</td><td>~4×</td></tr>
+          <tr><td>u4</td><td>32개</td><td>~8×</td></tr>
+          <tr><td>u3 (10개 패킹 시)</td><td>~42개</td><td>~10×+</td></tr>
+          <tr><td>u1 (bool 배열)</td><td>128개</td><td>~32×</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">12.2</span> GPU 타겟: WebGPU (WGSL)</div>
+      <div class="srb-code"><span class="cm">// ScriptRowberry 입력 — 1줄로 1000만 개 데이터 GPU 병렬 처리</span>
+<span class="kw">let</span> result = data.gpu_map(|x: <span class="ty">u3</span>| -> <span class="ty">u3</span> { x + <span class="num">1b3</span> });
+
+<span class="cm">// 컴파일러 자동 생성 WGSL (의미 동등)</span></div>
+      <div class="srb-code">@group(<span class="num">0</span>) @binding(<span class="num">0</span>) var&lt;storage, read_write&gt; data: array&lt;u32&gt;;
+
+@compute @workgroup_size(<span class="num">64</span>)
+fn main(@builtin(global_invocation_id) id: vec3&lt;u32&gt;) {
+    let idx = id.x;
+    <span class="cm">// 3비트 마스킹(&7u) 자동 주입 — 수천 개 GPU 코어가 동시 실행</span>
+    data[idx] = (data[idx] + <span class="num">1u</span>) & <span class="num">7u</span>;
+}</div>
+      <div class="srb-callout info">
+        <div class="label">gpu_map 캡처 바인딩 규칙</div>
+        <p>클로저 내부에서 캡처된 외부 상수(<code>const</code>) 변수는 자동으로 WGSL <code>@group(1) @binding(N)</code> 유니폼으로 변환됩니다. 구조체 참조가 캡처되면 해당 구조체가 Storage Buffer로 바인딩됩니다. 개발자는 바인딩 레이아웃을 직접 작성할 필요가 없습니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s13">
+    <div class="srb-section-header">
+      <span class="srb-section-num">13</span>
+      <h2 class="srb-section-title">표준 라이브러리 (std) <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+    <p class="srb-p">ScriptRowberry 표준 라이브러리는 동적 할당 없이 동작하는 제로 의존성 모듈들로 구성됩니다. 사용하지 않는 모듈은 DCE에 의해 최종 바이너리에서 완전히 제거됩니다.</p>
+    <table class="srb-table">
+      <thead><tr><th>모듈</th><th>주요 제공 기능</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>std::math</td><td>sin, cos, sqrt, pow, abs — f32 특화 버전, LUT 사용 가능</td><td>WGSL 빌트인 함수로 1:1 매핑</td></tr>
+        <tr><td>std::bits</td><td>clz(선행 0 카운팅), popcount, rotate_left, rotate_right, reverse_bits</td><td>Wasm 빌트인 명령어 직접 사용</td></tr>
+        <tr><td>std::mem</td><td>size_of&lt;T&gt;, bit_size_of&lt;T&gt;, addr_of, ptr_offset</td><td>컴파일 타임 상수 계산</td></tr>
+        <tr><td>std::simd</td><td>v128 타입, v128_load, v128_store, i8x16_add 등 SIMD 명령어 직접 바인딩</td><td>--target=wasm 전용</td></tr>
+        <tr><td>std::gpu</td><td>GpuBuffer&lt;T, N&gt;, gpu_map, gpu_reduce, gpu_scan</td><td>--target=gpu 전용</td></tr>
+        <tr><td>std::fmt</td><td>u32를 @import JS 로그 함수로 출력하는 디버그 유틸</td><td>@cfg(debug) 빌드에서만 포함</td></tr>
+        <tr><td>std::lut</td><td>sin/cos 16비트 정밀도 LUT, gamma 보정 LUT</td><td>게임보이 스타일 사전계산 테이블</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="srb-section" id="s14">
+    <div class="srb-section-header">
+      <span class="srb-section-num">14</span>
+      <h2 class="srb-section-title">빌드 시스템 (srbuild) <span class="srb-badge new">신규 섹션</span></h2>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">14.1</span> 빌드 옵션 레퍼런스</div>
+      <div class="srb-code"><span class="cm"># Wasm CPU 타겟 릴리즈 빌드</span>
+srbuild --target=wasm --release --wasm-pages=16 src/main.srb -o dist/game.wasm
+
+<span class="cm"># GPU 타겟 빌드 (WGSL 출력)</span>
+srbuild --target=gpu --release src/main.srb -o dist/shader.wgsl
+
+<span class="cm"># 디버그 빌드 — 소유권 검사 정보, 소스맵 포함</span>
+srbuild --target=wasm --debug --sourcemap src/main.srb -o dist/game.wasm
+
+<span class="cm"># 크기 최적화 최우선 모드 (Game Boy 모드)</span>
+srbuild --target=wasm --release --optimize=size --strip src/main.srb -o dist/game.wasm
+
+<span class="cm"># 성능 최적화 최우선 모드</span>
+srbuild --target=wasm --release --optimize=speed --simd src/main.srb -o dist/game.wasm</div>
+    </div>
+
+    <div class="srb-sub">
+      <div class="srb-sub-title"><span class="srb-sub-num">14.2</span> srb.toml 프로젝트 매니페스트</div>
+      <div class="srb-code">[package]
+name = <span class="str">"my-game"</span>
+version = <span class="str">"0.1.0"</span>
+entry = <span class="str">"src/main.srb"</span>
+
+[build]
+target = <span class="str">"wasm"</span>
+wasm_pages = <span class="num">16</span>      <span class="cm"># 16 × 64KB = 1MB 총 메모리</span>
+optimize = <span class="str">"speed"</span>
+simd = <span class="kw">true</span>
+
+[features]
+debug_overlay = <span class="kw">false</span>   <span class="cm"># @cfg(feature="debug_overlay") 토글</span>
+gpu_particles = <span class="kw">true</span>    <span class="cm"># @cfg(feature="gpu_particles") 토글</span></div>
+    </div>
+  </div>
+
+  <div class="srb-section" id="s15">
+    <div class="srb-section-header">
+      <span class="srb-section-num">15</span>
+      <h2 class="srb-section-title">예외 및 엣지 케이스 규정</h2>
+    </div>
+
+    <div class="srb-sub">
+      <p class="srb-p">원본 v1.0의 3가지 규칙을 7가지로 확장하고 근거를 보강합니다.</p>
+      <table class="srb-table">
+        <thead><tr><th>#</th><th>규칙</th><th>컴파일러 동작</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>암묵적 형변환 금지</td><td>u3 + u4 시도 시 E002 에러, as 캐스팅 강제</td></tr>
+          <tr><td>2</td><td>리터럴 경계선 초과 검사</td><td>let x: u3 = 8b3 → E001: "Literal 8 overflows u3 (max 7)"</td></tr>
+          <tr><td>3</td><td>세미콜론 자동 삽입 (ASI)</td><td>줄바꿈+연산자 배치 분석으로 안전하게 구분</td></tr>
+          <tr><td>4</td><td>모든 match 완전성 강제</td><td>배리언트 누락 시 E005, 미처리 케이스 목록 출력</td></tr>
+          <tr><td>5</td><td>unsafe 블록 경계 강제</td><td>원시 포인터 역참조, 인라인 Wasm은 unsafe {} 내에서만</td></tr>
+          <tr><td>6</td><td>컴파일 타임 크기 배열만 허용</td><td>[T; N]에서 N이 런타임 값이면 E007 에러</td></tr>
+          <tr><td>7</td><td>@export 함수 타입 제한</td><td>JS 전달 가능 타입(u32, i32, f32, u64, i64)만 파라미터/반환 허용. 구조체는 포인터로 전달</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="srb-divider"></div>
+
+    <div class="srb-callout info">
+      <div class="label">v2.0 보완 요약</div>
+      <p>v1.0 대비 추가된 섹션: 메모리 모델·소유권(§3), 모듈 시스템·조건부 컴파일(§5), 열거형·패턴 매칭(§6), 제네릭·트레이트(§7), 클로저 캡처 규칙(§8), 에러 처리 Result 타입(§10), JS 인터롭 양방향 명세(§11), 표준 라이브러리(§13), 빌드 시스템(§14). 기존 섹션에는 포인터·참조 타입(§2.3), 정적 배열(§2.4), 패딩 규칙 명문화(§2.2), DCE(§9.5), @export 타입 제한(§15-7)이 보완되었습니다.</p>
+    </div>
+  </div>
+</div>

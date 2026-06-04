@@ -1,0 +1,16 @@
+fn square(x: u32): u32 {
+  return x * x;
+}
+
+fn add(a: u32, b: u32): u32 {
+  return a + b;
+}
+
+fn sumOfSquares(a: u32, b: u32): u32 {
+  return add(square(a), square(b));
+}
+
+fn main(): u32 {
+  let result: u32 = sumOfSquares(3, 4);
+  return result;
+}

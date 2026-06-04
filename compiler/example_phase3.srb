@@ -1,0 +1,22 @@
+enum Command {
+  Start,
+  Stop,
+  SetSpeed { value: u8 },
+}
+
+const MAX_SPEED: u8 = 255;
+
+fn handleCommand(cmd: u32): u32 {
+  let mut result: u32 = 0;
+  match cmd {
+    Command::Start => { result = 1; },
+    Command::Stop => { result = 2; },
+    Command::SetSpeed => { result = MAX_SPEED; },
+  }
+  return result;
+}
+
+@export
+fn getMaxSpeed(): u32 {
+  return MAX_SPEED;
+}

@@ -1,0 +1,29 @@
+struct ObjectState {
+  id: u16;
+  active: u1;
+  category: u3;
+  priority: u4;
+}
+
+fn compute(x: u3, y: u3): u3 {
+  let mut result: u3 = 0b3;
+  if x > 4b3 {
+    result = 7b3;
+  } else {
+    result = x + y;
+  }
+  return result;
+}
+
+fn countUp(): u32 {
+  let mut total: u32 = 0;
+  for i in 0..8 {
+    total = total + 1;
+  }
+  return total;
+}
+
+fn makeObject(): u32 {
+  let obj = ObjectState { id: 42, active: 1, category: 3, priority: 10 };
+  return obj.id;
+}

@@ -1,0 +1,19 @@
+fn sum_array(arr: &mut [u32; 4]): u32 {
+  let mut sum: u32 = 0;
+  for i in 0..4 {
+    sum = sum + (*arr)[i];
+  }
+  return sum;
+}
+
+fn main(): u32 {
+  let mut my_array: [u32; 4] = [10, 20, 30, 40];
+  let ptr = &mut my_array;
+  
+  // modify array through pointer
+  (*ptr)[1] = 100; // my_array is now [10, 100, 30, 40]
+  
+  // calculate sum
+  let result = sum_array(ptr); // 10 + 100 + 30 + 40 = 180
+  return result;
+}

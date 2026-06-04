@@ -1,0 +1,10 @@
+extern "env" {
+  fn print(s: &str);
+}
+
+fn main(): u32 {
+  let msg: &str = "Hello, Wasm FFI!";
+  print(msg);
+  print("This string literal is pushed directly!");
+  return 0;
+}

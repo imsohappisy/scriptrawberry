@@ -1,0 +1,4 @@
+fn add(a: u3, b: u3): u3 {
+  let x: u3 = a + b;
+  return x;
+}
