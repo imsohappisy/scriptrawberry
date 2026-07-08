@@ -84,25 +84,40 @@ export class CodeGenerator {
   }
 
   private needsLinearMemory(): boolean {
-    // Check if any function uses structs, arrays, or takes variable addresses
     if (this.addressTakenVars.size > 0) return true;
-    for (const node of this.program.body) {
-      if (node.type === 'FunctionDeclaration') {
-        if (this.blockUsesMemory((node as AST.FunctionDeclaration).body)) return true;
+    
+    let needsMem = false;
+    const walk = (node: AST.ASTNode) => {
+      if (needsMem) return;
+      if (node.type === 'StringLiteral' || node.type === 'ArrayExpression') {
+        needsMem = true;
+        return;
       }
-    }
-    return false;
-  }
+      if (node.type === 'VariableDeclaration') {
+        const decl = node as AST.VariableDeclaration;
+        if (decl.varType?.isArray) {
+          needsMem = true;
+        } else if (decl.varType?.isStruct || (decl.varType && this.structRegistry.has(decl.varType.name))) {
+          if (this.addressTakenVars.has(decl.name.name)) {
+            needsMem = true;
+          }
+        }
+      }
+      // Traverse children
+      for (const key in node) {
+        const val = (node as any)[key];
+        if (Array.isArray(val)) {
+          val.forEach(v => { if (v && v.type) walk(v); });
+        } else if (val && val.type) {
+          walk(val);
+        }
+      }
+    };
 
-  private blockUsesMemory(block: AST.BlockStatement): boolean {
-    for (const stmt of block.body) {
-      if (stmt.type === 'VariableDeclaration') {
-        const decl = stmt as AST.VariableDeclaration;
-        if (decl.varType?.isStruct || decl.varType?.isArray) return true;
-        if (decl.varType && this.structRegistry.has(decl.varType.name)) return true;
-      }
+    for (const node of this.program.body) {
+      walk(node);
     }
-    return false;
+    return needsMem;
   }
 
   private generateFunction(fn: AST.FunctionDeclaration) {
@@ -171,10 +186,27 @@ export class CodeGenerator {
         
         let varType = decl.varType || { name: 'i32', bitWidth: 32 };
         
-        let memorySize = 0;
-        if (varType.isStruct) {
+        const isStructType = varType.isStruct || this.structRegistry.has(varType.name);
+        if (isStructType && !this.addressTakenVars.has(vName)) {
           const layout = this.structRegistry.get(varType.name);
-          if (layout) memorySize = layout.paddedBytes;
+          if (layout) {
+            this.localTypes.set(vName, varType);
+            for (const field of layout.fields) {
+              const fieldVarName = `${vName}__field__${field.name}`;
+              this.locals.set(fieldVarName, this.localIndex++);
+              this.localTypes.set(fieldVarName, field.type);
+              this.output.push(`    (local $${fieldVarName} i32)`);
+            }
+            continue;
+          }
+        }
+
+        let memorySize = 0;
+        if (isStructType) {
+          if (this.addressTakenVars.has(vName)) {
+            const layout = this.structRegistry.get(varType.name);
+            if (layout) memorySize = layout.paddedBytes;
+          }
         } else if (varType.isArray && varType.arraySize) {
           memorySize = varType.arraySize * 4; 
         } else if (this.addressTakenVars.has(vName)) {
@@ -225,6 +257,8 @@ export class CodeGenerator {
             const mem = this.memoryLocals.get(decl.name.name);
             if (mem) {
               this.generateStructInstantiation(decl.init as AST.StructInstantiation, mem.ptrLocal);
+            } else {
+              this.generateSROAStructInstantiation(decl.name.name, decl.init as AST.StructInstantiation);
             }
           } else if (decl.init.type === 'ArrayExpression') {
             const mem = this.memoryLocals.get(decl.name.name);
@@ -260,9 +294,11 @@ export class CodeGenerator {
             if (mem) {
               this.output.push(`    local.get $${mem.ptrLocal}`);
               this.generateExpression(decl.init);
+              this.maskValue(decl.varType);
               this.output.push(`    i32.store`);
             } else {
               this.generateExpression(decl.init);
+              this.maskValue(decl.varType);
               this.output.push(`    local.set $${decl.name.name}`);
             }
           }
@@ -286,7 +322,7 @@ export class CodeGenerator {
         break;
       }
       case 'ForStatement': {
-        this.generateForUnrolled(stmt as AST.ForStatement);
+        this.generateForStatement(stmt as AST.ForStatement);
         break;
       }
       case 'AssignmentExpression': {
@@ -294,19 +330,40 @@ export class CodeGenerator {
         if (assign.target.type === 'Identifier') {
           const id = assign.target as AST.Identifier;
           const mem = this.memoryLocals.get(id.name);
+          const varType = this.localTypes.get(id.name);
           if (mem) {
             this.output.push(`    local.get $${mem.ptrLocal}`);
             this.generateExpression(assign.value);
+            this.maskValue(varType);
             this.output.push(`    i32.store`);
           } else {
             this.generateExpression(assign.value);
+            this.maskValue(varType);
             this.output.push(`    local.set $${id.name}`);
           }
         } else if (assign.target.type === 'MemberExpression') {
           const member = assign.target as AST.MemberExpression;
-          this.generateLValue(member);
-          this.generateExpression(assign.value);
-          this.output.push(`    i32.store`);
+          if (member.object.type === 'Identifier') {
+            const id = member.object as AST.Identifier;
+            const isStructType = this.localTypes.get(id.name)?.isStruct || (this.localTypes.get(id.name) && this.structRegistry.has(this.localTypes.get(id.name)!.name));
+            if (isStructType && !this.addressTakenVars.has(id.name)) {
+              this.generateExpression(assign.value);
+              const layout = this.structRegistry.get(this.localTypes.get(id.name)!.name);
+              const fieldLayout = layout?.fields.find(f => f.name === member.property.name);
+              if (fieldLayout) {
+                this.maskValue(fieldLayout.type);
+              }
+              this.output.push(`    local.set $${id.name}__field__${member.property.name}`);
+            } else {
+              this.generateLValue(member);
+              this.generateExpression(assign.value);
+              this.output.push(`    i32.store`);
+            }
+          } else {
+            this.generateLValue(member);
+            this.generateExpression(assign.value);
+            this.output.push(`    i32.store`);
+          }
         } else if (assign.target.type === 'IndexExpression') {
           const indexExpr = assign.target as AST.IndexExpression;
           this.generateLValue(indexExpr);
@@ -344,6 +401,19 @@ export class CodeGenerator {
 
   // --- Struct support ---
 
+  private generateSROAStructInstantiation(vName: string, inst: AST.StructInstantiation) {
+    const layout = this.structRegistry.get(inst.structName.name);
+    if (!layout) return;
+
+    for (const fieldInit of inst.fields) {
+      const fieldLayout = layout.fields.find(f => f.name === fieldInit.name.name);
+      if (!fieldLayout) continue;
+      this.generateExpression(fieldInit.value);
+      this.maskValue(fieldLayout.type);
+      this.output.push(`    local.set $${vName}__field__${fieldInit.name.name}`);
+    }
+  }
+
   private generateStructInstantiation(inst: AST.StructInstantiation, ptrLocal: string) {
     const layout = this.structRegistry.get(inst.structName.name);
     if (!layout) return;
@@ -376,11 +446,9 @@ export class CodeGenerator {
       const member = node as AST.MemberExpression;
       this.generateLValue(member.object); // address of the struct
       
-      let objType: AST.TypeNode | undefined;
-      if (member.object.type === 'Identifier') {
-        objType = this.localTypes.get((member.object as AST.Identifier).name);
-      }
-      if (!objType || !objType.isStruct) throw new Error('Member access on non-struct');
+      const objType = this.getTypeOfNode(member.object);
+      const isStruct = objType?.isStruct || (objType && this.structRegistry.has(objType.name));
+      if (!objType || !isStruct) throw new Error('Member access on non-struct');
       
       const layout = this.structRegistry.get(objType.name);
       if (!layout) throw new Error('Unknown struct');
@@ -535,29 +603,61 @@ export class CodeGenerator {
   }
 
   /**
-   * AST-level loop unrolling: for i in START..END { body }
-   * Completely expands the loop at compile time — zero runtime branch cost.
+   * Generates ForStatement:
+   * If start and end are compile-time constants and range <= 16, unroll it.
+   * Otherwise, compile to dynamic Wasm loops using block, loop, br_if.
    */
-  private generateForUnrolled(forStmt: AST.ForStatement) {
+  private generateForStatement(forStmt: AST.ForStatement) {
     const startVal = this.evaluateConstant(forStmt.start);
     const endVal = this.evaluateConstant(forStmt.end);
 
-    if (startVal === null || endVal === null) {
-      throw new Error('for loop range must be compile-time constants (required for loop unrolling)');
-    }
+    if (startVal !== null && endVal !== null && (endVal - startVal) <= 16) {
+      this.output.push(`    ;; === UNROLLED for ${forStmt.iterator.name} in ${startVal}..${endVal} ===`);
+      for (let i = startVal; i < endVal; i++) {
+        this.output.push(`    ;; --- iteration ${forStmt.iterator.name} = ${i} ---`);
+        this.output.push(`    i32.const ${i}`);
+        this.output.push(`    local.set $${forStmt.iterator.name}`);
+        for (const stmt of forStmt.body.body) {
+          this.generateStatement(stmt);
+        }
+      }
+      this.output.push(`    ;; === END UNROLLED ===`);
+    } else {
+      const blockLabel = `$for_block_${this.labelCounter}`;
+      const loopLabel = `$for_loop_${this.labelCounter}`;
+      this.labelCounter++;
 
-    this.output.push(`    ;; === UNROLLED for ${forStmt.iterator.name} in ${startVal}..${endVal} ===`);
-    for (let i = startVal; i < endVal; i++) {
-      this.output.push(`    ;; --- iteration ${forStmt.iterator.name} = ${i} ---`);
-      // Set iterator value
-      this.output.push(`    i32.const ${i}`);
+      this.output.push(`    ;; === DYNAMIC for ${forStmt.iterator.name} ===`);
+      // Initializer: iterator = start
+      this.generateExpression(forStmt.start);
       this.output.push(`    local.set $${forStmt.iterator.name}`);
-      // Emit body
+
+      this.output.push(`    block ${blockLabel}`);
+      this.output.push(`    loop ${loopLabel}`);
+
+      // Condition: if iterator >= end, break to blockLabel
+      this.output.push(`    local.get $${forStmt.iterator.name}`);
+      this.generateExpression(forStmt.end);
+      this.output.push(`    i32.ge_s`);
+      this.output.push(`    br_if ${blockLabel}`);
+
+      // Body
       for (const stmt of forStmt.body.body) {
         this.generateStatement(stmt);
       }
+
+      // Step: iterator = iterator + 1
+      this.output.push(`    local.get $${forStmt.iterator.name}`);
+      this.output.push(`    i32.const 1`);
+      this.output.push(`    i32.add`);
+      this.output.push(`    local.set $${forStmt.iterator.name}`);
+
+      // Continue loop
+      this.output.push(`    br ${loopLabel}`);
+      this.output.push(`    end`);
+      this.output.push(`    end`);
+      this.output.push(`    ;; === END DYNAMIC ===`);
     }
-    this.output.push(`    ;; === END UNROLLED ===`);
   }
 
   private evaluateConstant(node: AST.ASTNode): number | null {
@@ -647,6 +747,15 @@ export class CodeGenerator {
         break;
       }
       case 'MemberExpression': {
+        const member = expr as AST.MemberExpression;
+        if (member.object.type === 'Identifier') {
+          const id = member.object as AST.Identifier;
+          const isStructType = this.localTypes.get(id.name)?.isStruct || (this.localTypes.get(id.name) && this.structRegistry.has(this.localTypes.get(id.name)!.name));
+          if (isStructType && !this.addressTakenVars.has(id.name)) {
+            this.output.push(`    local.get $${id.name}__field__${member.property.name}`);
+            break;
+          }
+        }
         this.generateLValue(expr);
         this.output.push(`    i32.load`);
         break;
@@ -689,6 +798,50 @@ export class CodeGenerator {
         break;
       }
     }
+  }
+
+  private getTypeOfNode(node: AST.ASTNode): AST.TypeNode | undefined {
+    if (node.type === 'Identifier') {
+      const id = node as AST.Identifier;
+      return this.localTypes.get(id.name);
+    }
+    if (node.type === 'DereferenceExpression') {
+      const deref = node as AST.DereferenceExpression;
+      const argType = this.getTypeOfNode(deref.argument);
+      return argType?.elementType;
+    }
+    if (node.type === 'ReferenceExpression') {
+      const ref = node as AST.ReferenceExpression;
+      const argType = this.getTypeOfNode(ref.argument);
+      return {
+        name: ref.isMut ? `&mut ${argType?.name}` : `&${argType?.name}`,
+        isPointer: true,
+        isMut: ref.isMut,
+        elementType: argType,
+      };
+    }
+    if (node.type === 'MemberExpression') {
+      const member = node as AST.MemberExpression;
+      const objType = this.getTypeOfNode(member.object);
+      if (objType) {
+        const layout = this.structRegistry.get(objType.name);
+        if (layout) {
+          const field = layout.fields.find(f => f.name === member.property.name);
+          return field?.type;
+        }
+      }
+    }
+    if (node.type === 'IndexExpression') {
+      const idx = node as AST.IndexExpression;
+      const objType = this.getTypeOfNode(idx.object);
+      return objType?.elementType;
+    }
+    if (node.type === 'Literal') {
+      const lit = node as AST.Literal;
+      if (typeof lit.value === 'boolean') return { name: 'bool', bitWidth: 1 };
+      return { name: 'i32', bitWidth: 32, isSigned: true };
+    }
+    return undefined;
   }
 
   private maskValue(typeNode?: AST.TypeNode) {

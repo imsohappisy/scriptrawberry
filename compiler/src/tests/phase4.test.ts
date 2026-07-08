@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { Parser } from './parser';
-import { Checker, CheckerError } from './checker';
-import { CodeGenerator } from './codegen';
+import { Parser } from '../parser';
+import { Checker, CheckerError } from '../checker';
+import { CodeGenerator } from '../codegen';
 
 describe('Phase 4: Arrays and Pointers', () => {
   it('should parse array types and literals', () => {

@@ -1,17 +1,19 @@
 {
-  "name": "compiler",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "scriptrawberry",
+  "version": "0.5.0",
+  "description": "ScriptRowberry Core Compiler - Compiles .srb code straight to WebAssembly",
+  "main": "dist/scriptrawberry.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node build.js",
+    "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["webassembly", "compiler", "scriptrowberry"],
+  "author": "Sean",
   "license": "ISC",
   "packageManager": "pnpm@10.34.1",
   "devDependencies": {
     "@types/node": "^25.9.1",
+    "esbuild": "^0.28.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8",

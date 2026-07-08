@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Parser } from './parser';
-import { Checker, CheckerError } from './checker';
+import { Parser } from '../parser';
+import { Checker, CheckerError } from '../checker';
 
 describe('Checker', () => {
   it('should pass valid programs', () => {

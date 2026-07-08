@@ -3,6 +3,8 @@ import { Parser } from './parser';
 import { Checker } from './checker';
 import { CodeGenerator } from './codegen';
 
+import { ASTOptimizer } from './optimizer';
+
 function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
@@ -22,7 +24,11 @@ function main() {
     
     // 1. Parse
     const parser = new Parser(code);
-    const ast = parser.parse();
+    let ast = parser.parse();
+
+    // 1.5. Optimize
+    const optimizer = new ASTOptimizer();
+    ast = optimizer.optimize(ast);
 
     // 2. Check
     const checker = new Checker();

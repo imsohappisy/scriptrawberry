@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { Parser } from './parser';
-import { Checker, CheckerError } from './checker';
-import { CodeGenerator } from './codegen';
+import { Parser } from '../parser';
+import { Checker, CheckerError } from '../checker';
+import { CodeGenerator } from '../codegen';
 
 describe('Function Call Expression', () => {
   it('should parse and compile a basic function call', () => {

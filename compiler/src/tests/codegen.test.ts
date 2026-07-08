@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { Parser } from './parser';
-import { Checker } from './checker';
-import { CodeGenerator } from './codegen';
+import { Parser } from '../parser';
+import { Checker } from '../checker';
+import { CodeGenerator } from '../codegen';
 
 describe('CodeGenerator', () => {
   it('should generate valid WAT with bit masking', () => {

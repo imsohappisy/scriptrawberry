@@ -407,9 +407,19 @@ export class Checker {
           throw new CheckerError('E007', `ArgumentCount: Function '${call.callee.name}' expects ${sig.params.length} arguments, got ${call.args.length}`);
         }
         for (let i = 0; i < call.args.length; i++) {
-          const argType = this.checkNode(call.args[i]) as AST.TypeNode;
-          if (argType.name !== sig.params[i].type.name) {
-            throw new CheckerError('E002', `ArgumentTypeMismatch: Expected ${sig.params[i].type.name}, got ${argType.name} (from ${call.args[i].type})`);
+          const argNode = call.args[i];
+          const argType = this.checkNode(argNode) as AST.TypeNode;
+          const paramType = sig.params[i].type;
+
+          const isUnsuffixedLiteral = argNode.type === 'Literal' && this.isPlainIntegerLiteral(argNode as AST.Literal);
+          const bothIntegers = this.isIntegerType(paramType) && this.isIntegerType(argType);
+
+          if (argType.name !== paramType.name && !isUnsuffixedLiteral && !bothIntegers) {
+            throw new CheckerError('E002', `ArgumentTypeMismatch: Expected ${paramType.name}, got ${argType.name} (from ${argNode.type})`);
+          }
+
+          if (argNode.type === 'Literal') {
+            this.checkLiteralBounds(argNode as AST.Literal, paramType);
           }
         }
         return sig.returnType;

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { Parser } from './parser';
-import { Checker } from './checker';
-import { CodeGenerator } from './codegen';
+import { Parser } from '../parser';
+import { Checker } from '../checker';
+import { CodeGenerator } from '../codegen';
 
 describe('Phase 2: Struct Declaration & Instantiation', () => {
   it('should parse and check struct declarations', () => {
@@ -40,7 +40,8 @@ describe('Phase 2: Struct Declaration & Instantiation', () => {
       }
       fn make(): u32 {
         let v = Vec2 { x: 10, y: 20 };
-        return v.x;
+        let ptr = &v;
+        return (*ptr).x;
       }
     `;
     const parser = new Parser(code);
@@ -54,6 +55,30 @@ describe('Phase 2: Struct Declaration & Instantiation', () => {
     expect(wat).toContain('global $__stack_ptr');
     expect(wat).toContain('i32.store');
     expect(wat).toContain('i32.load');
+  });
+
+  it('should optimize struct instantiation with SROA (no linear memory)', () => {
+    const code = `
+      struct Vec2 {
+        x: u16;
+        y: u16;
+      }
+      fn make(): u32 {
+        let v = Vec2 { x: 10, y: 20 };
+        return v.x;
+      }
+    `;
+    const parser = new Parser(code);
+    const ast = parser.parse();
+    const checker = new Checker();
+    checker.check(ast);
+    const codegen = new CodeGenerator(ast, checker);
+    const wat = codegen.generate();
+    
+    expect(wat).not.toContain('(memory');
+    expect(wat).not.toContain('global $__stack_ptr');
+    expect(wat).toContain('local.set $v__field__x');
+    expect(wat).toContain('local.get $v__field__x');
   });
 });
 

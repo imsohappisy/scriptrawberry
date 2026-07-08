@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Parser } from './parser';
+import { Parser } from '../parser';
 
 describe('Parser', () => {
   it('should parse a basic function', () => {
