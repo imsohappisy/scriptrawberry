@@ -188,4 +188,4 @@ See for yourself how fast ScriptRowberry compiles to Wasm and renders onto the c
 
 For detailed language specifications, tokenizing rules, and more, please refer to the manual.
 
-* [Language Manual](https://imsohappisy.github.io/scriptrawberry/manual.html)
+* [Language Manual](./manual.html)

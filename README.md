@@ -220,7 +220,7 @@ ScriptRowberry가 브라우저에서 얼마나 빠르게 Wasm으로 컴파일되
 
 ## 상세 스펙 문서
 자세한 언어 스펙과 토크나이징 룰 등은 설명서를 참고하세요.
-- [Language Manual](https://imsohappisy.github.io/scriptrawberry/manual.html)
+- [Language Manual](./manual.html)
 
 ## 라이선스
 MIT
