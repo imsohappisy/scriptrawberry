@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ScriptRowberry Interactive Canvas</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #121212; color: #eee; display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 45%; padding: 20px; box-sizing: border-box; background: #1e1e1e; border-right: 1px solid #333; display: flex; flex-direction: column; }
+    .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    textarea { flex: 1; width: 100%; font-family: 'Courier New', Courier, monospace; font-size: 14px; background: #2d2d2d; color: #d4d4d4; border: 1px solid #444; padding: 15px; box-sizing: border-box; border-radius: 8px; resize: none; margin-bottom: 15px; }
+    button { padding: 12px 24px; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #ff3366 0%, #ff6b3b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4); }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 51, 102, 0.6); }
+    button:active { transform: translateY(1px); }
+    canvas { background: #0a0a0a; border: 2px solid #333; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; }
+    h1 { margin-top: 0; font-size: 24px; background: -webkit-linear-gradient(#ff3366, #ff9933); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hint { margin-top: 15px; color: #888; font-size: 14px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+      <img src="logo.png" alt="ScriptRowberry Logo" style="width: 40px; height: 40px; border-radius: 8px; margin-right: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+      <h1 style="margin: 0; text-align: left;">ScriptRowberry Playground</h1>
+    </div>
+    <p style="color: #aaa; font-size: 14px; margin-bottom: 15px; text-align: center;">Write code to control the Canvas! Click the canvas to trigger the <b>explode</b> function.</p>
+    <textarea id="code" spellcheck="false">
+extern "env" {
+  fn fillRect(x: u32, y: u32, w: u32, h: u32, color: &str);
+  fn random(): u32; // Returns 0-100
+}
+
+fn drawStrawberry(cx: u32, cy: u32) {
+  let size: u32 = 10;
+  
+  // Strawberry top leaves
+  fillRect(cx - 10, cy - 30, size, size, "#33FF66");
+  fillRect(cx + 10, cy - 30, size, size, "#33FF66");
+  fillRect(cx, cy - 20, size, size, "#22DD55");
+
+  // Strawberry body
+  fillRect(cx - 20, cy - 10, 50, 40, "#FF3366");
+  fillRect(cx - 10, cy + 30, 30, 10, "#FF3366");
+
+  // Seeds
+  fillRect(cx - 10, cy, 5, 5, "#FFEEDD");
+  fillRect(cx + 10, cy + 10, 5, 5, "#FFEEDD");
+  fillRect(cx + 20, cy - 5, 5, 5, "#FFEEDD");
+  fillRect(cx, cy + 20, 5, 5, "#FFEEDD");
+}
+
+fn explode(cx: u32, cy: u32) {
+  let count: u32 = 0;
+  while count < 40 {
+    let rx: u32 = random();
+    let ry: u32 = random();
+    let x: u32 = cx + rx - 50;
+    let y: u32 = cy + ry - 50;
+    
+    let color: u32 = random();
+    if color < 33 {
+      fillRect(x, y, 8, 8, "#FF3366");
+    } else {
+      if color < 66 {
+        fillRect(x, y, 6, 6, "#33FF66");
+      } else {
+        fillRect(x, y, 4, 4, "#FFEEDD");
+      }
+    }
+    count = count + 1;
+  }
+}
+
+fn main(): u32 {
+  // Initial render
+  drawStrawberry(250, 250);
+  drawStrawberry(100, 100);
+  drawStrawberry(400, 300);
+  return 0;
+}
+    </textarea>
+    <button id="runBtn">Compile & Run to Canvas</button>
+    <a href="manual.html" target="_blank" style="display: block; margin-top: 15px; padding: 12px 24px; font-size: 14px; font-weight: bold; background: #333; color: white; border: 1px solid #555; border-radius: 8px; text-align: center; text-decoration: none; transition: background 0.2s;">
+      언어 스펙 설명서 보기
+    </a>
+    <div id="status" class="hint">Waiting to compile...</div>
+  </div>
+
+  <div class="main">
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <div class="hint">Edit the code and hit Compile.<br>Click anywhere on the canvas to run the Wasm <code>explode()</code> function.</div>
+  </div>
+
+  <script src="dist/scriptrawberry.js"></script>
+
+  <script>
+    const codeEl = document.getElementById('code');
+    const runBtn = document.getElementById('runBtn');
+    const statusEl = document.getElementById('status');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let wasmExports = null;
+
+    // FFI Setup
+    let wasmInstance = null;
+    const importObject = {
+      env: {
+        fillRect: (x, y, w, h, ptr, len) => {
+          if (!wasmInstance) return;
+          const memory = wasmInstance.exports.memory;
+          const buffer = new Uint8Array(memory.buffer, ptr, len);
+          const color = new TextDecoder('utf-8').decode(buffer);
+          ctx.fillStyle = color;
+          ctx.fillRect(x, y, w, h);
+        },
+        random: () => {
+          return Math.floor(Math.random() * 101);
+        }
+      }
+    };
+
+    async function compileAndRun() {
+      statusEl.textContent = 'Compiling...';
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+      try {
+        const code = codeEl.value;
+        const startTime = performance.now();
+        
+        // Use our new Compiler Core API directly!
+        const wasmBytecode = await ScriptRowberry.compileToWasm(code);
+        
+        const compileTime = performance.now() - startTime;
+        
+        const { instance } = await WebAssembly.instantiate(wasmBytecode, importObject);
+        wasmInstance = instance;
+        wasmExports = instance.exports;
+        
+        // Execute main
+        const res = wasmExports.main();
+        
+        statusEl.innerHTML = `<span style="color:#0f0">Compiled in ${compileTime.toFixed(2)}ms!</span> (Main returned ${res})`;
+
+      } catch (err) {
+        statusEl.innerHTML = `<span style="color:#f33">Compilation Error: ${err.message}</span>`;
+        console.error(err);
+      }
+    }
+
+    // Handle Canvas Clicks
+    canvas.addEventListener('mousedown', (e) => {
+      if (!wasmExports || !wasmExports.explode) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor(e.clientX - rect.left);
+      const y = Math.floor(e.clientY - rect.top);
+      
+      // Call the Wasm function natively!
+      wasmExports.explode(x, y);
+    });
+
+    runBtn.addEventListener('click', compileAndRun);
+
+    // Initial compile on load
+    compileAndRun();
+  </script>
+</body>
+</html>
