@@ -533,6 +533,7 @@ fn main(): u32 {
 }`,
       fibonacci: `extern "env" {
   fn print(msg: &str);
+  fn printInt(val: u32);
 }
 
 fn fib(n: u32): u32 {
@@ -543,13 +544,15 @@ fn fib(n: u32): u32 {
 }
 
 fn main(): u32 {
-  print("Starting Fibonacci calculation...");
+  print("Calculating fib(10) recursively...");
   let res = fib(10);
-  print("Fibonacci of 10 calculated successfully.");
+  print("Calculated successfully! Result value:");
+  printInt(res);
   return res;
 }`,
       sroa: `extern "env" {
   fn print(msg: &str);
+  fn printInt(val: u32);
 }
 
 struct Particle {
@@ -562,13 +565,15 @@ fn main(): u32 {
   // This struct has no address taken, so it will be promoted to register locals (SROA)!
   let p = Particle { x: 150, y: 300, active: 1b1 };
   
-  print("Accessing struct v.x and v.y dynamically via direct register locals.");
+  print("SROA Promoted Struct fields v.x + v.y equals:");
   
   let sum = p.x + p.y;
+  printInt(sum);
   return sum;
 }`,
       loop: `extern "env" {
   fn print(msg: &str);
+  fn printInt(val: u32);
 }
 
 fn main(): u32 {
@@ -581,7 +586,8 @@ fn main(): u32 {
     sum = sum + i;
   }
   
-  print("Loop finished successfully.");
+  print("Loop finished successfully. Total sum value:");
+  printInt(sum);
   return sum;
 }`
     };
@@ -636,6 +642,9 @@ fn main(): u32 {
           const buffer = new Uint8Array(memory.buffer, ptr, len);
           const text = new TextDecoder('utf-8').decode(buffer);
           appendConsoleLine(`[Wasm Print] ${text}`, 'ffi');
+        },
+        printInt: (val) => {
+          appendConsoleLine(`[Wasm PrintInt] ${val}`, 'ffi');
         }
       }
     };
