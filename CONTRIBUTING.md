@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>한국어</strong> | <a href="./CONTRIBUTING_EN.md">English</a>
+</p>
+
 # ScriptRowberry 기여 가이드라인 (Contributing Guidelines)
 
 ScriptRowberry 프로젝트에 관심을 가져주셔서 감사합니다! 이 프로젝트는 비트 레벨 정밀도로 구동되는 WebAssembly 시스템 언어이며, 오픈소스로 모든 형태의 기여를 환영합니다.

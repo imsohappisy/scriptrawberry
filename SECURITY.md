@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>한국어</strong> | <a href="./SECURITY_EN.md">English</a>
+</p>
+
 # 보안 정책 (Security Policy)
 
 ## 지원되는 버전

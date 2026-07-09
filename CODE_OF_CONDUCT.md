@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>한국어</strong> | <a href="./CODE_OF_CONDUCT_EN.md">English</a>
+</p>
+
 # 기여자 행동 강령 (Code of Conduct)
 
 ## 우리의 약속
