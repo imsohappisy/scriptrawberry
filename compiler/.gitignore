@@ -1,6 +1,0 @@
-node_modules
-out.wat
-out.wasm
-.DS_Store
-dist
-patch*.js

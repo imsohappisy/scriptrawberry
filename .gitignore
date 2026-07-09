@@ -1,9 +1,0 @@
-.DS_Store
-*.swp
-.vscode/
-node_modules/
-dist/
-out.wat
-out.wasm
-compiler/patch*.js
-status.md
