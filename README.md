@@ -224,4 +224,4 @@ ScriptRowberry가 브라우저에서 얼마나 빠르게 Wasm으로 컴파일되
 - [Language Manual](./manual.html)
 
 ## 라이선스
-MIT
+Apache License 2.0
