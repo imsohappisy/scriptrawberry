@@ -1,32 +1,484 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>ScriptRowberry Interactive Canvas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScriptRowberry Interactive Playground</title>
   <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #121212; color: #eee; display: flex; height: 100vh; overflow: hidden; }
-    .sidebar { width: 45%; padding: 20px; box-sizing: border-box; background: #1e1e1e; border-right: 1px solid #333; display: flex; flex-direction: column; }
-    .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-    textarea { flex: 1; width: 100%; font-family: 'Courier New', Courier, monospace; font-size: 14px; background: #2d2d2d; color: #d4d4d4; border: 1px solid #444; padding: 15px; box-sizing: border-box; border-radius: 8px; resize: none; margin-bottom: 15px; }
-    button { padding: 12px 24px; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #ff3366 0%, #ff6b3b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4); }
-    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 51, 102, 0.6); }
-    button:active { transform: translateY(1px); }
-    canvas { background: #0a0a0a; border: 2px solid #333; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; }
-    h1 { margin-top: 0; font-size: 24px; background: -webkit-linear-gradient(#ff3366, #ff9933); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hint { margin-top: 15px; color: #888; font-size: 14px; text-align: center; }
+    :root {
+      --bg: #0B0E14;
+      --bg-panel: #161A22;
+      --bg-editor: #0D1117;
+      --border: #21262D;
+      --text: #C9D1D9;
+      --text-bright: #F0F6FC;
+      --text-muted: #8B949E;
+      --strawberry: #FF3366;
+      --mint: #1D9E75;
+      --lavender: #7F77DD;
+      --warning: #e3b341;
+      --console-bg: #05070A;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: rgba(11, 14, 20, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      height: 60px;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-bright);
+      letter-spacing: -0.3px;
+    }
+
+    .brand h1 span {
+      color: var(--strawberry);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    select {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 32px 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    select:hover {
+      border-color: var(--strawberry);
+    }
+
+    .select-wrapper::after {
+      content: "▼";
+      font-size: 9px;
+      color: var(--text-muted);
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .btn {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      outline: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--strawberry) 0%, #FF6B3B 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 51, 102, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(255, 51, 102, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-editor);
+      border-color: var(--text-muted);
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left: Editor */
+    .editor-section {
+      width: 45%;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-editor);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      background: var(--bg-editor);
+      color: #E6EDF3;
+      border: none;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      resize: none;
+      outline: none;
+    }
+
+    /* Right: Viewer (Tabs) */
+    .viewer-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0 8px;
+    }
+
+    .tab {
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: var(--text-bright);
+    }
+
+    .tab.active {
+      color: var(--strawberry);
+      border-bottom-color: var(--strawberry);
+      font-weight: 600;
+    }
+
+    .tab-content {
+      flex: 1;
+      display: none;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Canvas tab */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    canvas {
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      cursor: crosshair;
+    }
+
+    .canvas-hint {
+      margin-top: 15px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* WAT code tab */
+    .code-viewer {
+      flex: 1;
+      background: var(--console-bg);
+      color: #79C0FF;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      overflow: auto;
+      white-space: pre;
+    }
+
+    /* FFI Console Tab */
+    .console-container {
+      flex: 1;
+      background: var(--console-bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .console-output {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+    }
+
+    .console-line {
+      margin-bottom: 4px;
+      color: #E6EDF3;
+    }
+
+    .console-line.system {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .console-line.success {
+      color: var(--mint);
+    }
+
+    .console-line.error {
+      color: var(--strawberry);
+    }
+
+    .console-line.ffi {
+      color: var(--lavender);
+    }
+
+    .console-action {
+      padding: 8px 16px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .console-action span {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .clear-btn {
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .clear-btn:hover {
+      color: var(--text-bright);
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 30px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .status-indicator.success { background: var(--mint); }
+    .status-indicator.error { background: var(--strawberry); }
+    .status-indicator.loading { background: var(--warning); animation: pulse 1s infinite alternate; }
+
+    @keyframes pulse {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
-      <img src="logo.png" alt="ScriptRowberry Logo" style="width: 40px; height: 40px; border-radius: 8px; margin-right: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
-      <h1 style="margin: 0; text-align: left;">ScriptRowberry Playground</h1>
+  <header>
+    <div class="brand">
+      <img src="logo.png" alt="ScriptRowberry Logo">
+      <h1>ScriptRowberry <span>Playground</span></h1>
     </div>
-    <p style="color: #aaa; font-size: 14px; margin-bottom: 15px; text-align: center;">Write code to control the Canvas! Click the canvas to trigger the <b>explode</b> function.</p>
-    <textarea id="code" spellcheck="false">
-extern "env" {
+
+    <div class="actions">
+      <div class="select-wrapper">
+        <select id="exampleSelect">
+          <option value="canvas">🍓 Canvas 그리기 & explode (FFI)</option>
+          <option value="fibonacci">🔢 피보나치 수열 (재귀 호출)</option>
+          <option value="sroa">⚡ 구조체 SROA 최적화 검증</option>
+          <option value="loop">🔁 동적 루프 (Dynamic Loop)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="runBtn">Compile &amp; Run</button>
+      <a class="btn btn-secondary" href="manual.html" target="_blank">Manual</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Left Panel: Code Editor -->
+    <div class="editor-section">
+      <div class="section-title">
+        <span>Source Code (.scrb)</span>
+        <span id="editorInfo" style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">utf-8</span>
+      </div>
+      <textarea id="code" spellcheck="false"></textarea>
+    </div>
+
+    <!-- Right Panel: Viewers -->
+    <div class="viewer-section">
+      <div class="tabs">
+        <div class="tab active" data-target="canvasTab">Interactive Canvas</div>
+        <div class="tab" data-target="watTab">WAT Code (Output)</div>
+        <div class="tab" data-target="consoleTab">Console Log</div>
+      </div>
+
+      <!-- Tab Content: Canvas -->
+      <div class="tab-content active" id="canvasTab">
+        <div class="canvas-container">
+          <canvas id="gameCanvas" width="500" height="500"></canvas>
+          <div class="canvas-hint">
+            캔버스는 <code>fillRect(x, y, w, h, color)</code> FFI 함수를 호출해 그릴 수 있습니다.<br>
+            캔버스 위를 클릭하면 Wasm 내부 <code>explode(x, y)</code> 함수가 네이티브 속도로 트리거됩니다.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: WAT Code -->
+      <div class="tab-content" id="watTab">
+        <div class="code-viewer" id="watViewer">Compile code to view WebAssembly Text Format...</div>
+      </div>
+
+      <!-- Tab Content: Console -->
+      <div class="tab-content" id="consoleTab">
+        <div class="console-container">
+          <div class="console-output" id="consoleOutput">
+            <div class="console-line system">Console initialized. Ready to execute ScriptRowberry Wasm payload.</div>
+          </div>
+          <div class="console-action">
+            <span>FFI &amp; System log output</span>
+            <div class="clear-btn" id="clearConsole">Clear</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="status-indicator" id="statusIndicator"></div>
+      <span id="statusText">Ready to compile</span>
+    </div>
+    <div style="font-family: 'JetBrains Mono', monospace;">Target: WebAssembly (WAT)</div>
+  </div>
+
+  <script src="dist/scriptrawberry.js"></script>
+
+  <script>
+    const codeEl = document.getElementById('code');
+    const runBtn = document.getElementById('runBtn');
+    const exampleSelect = document.getElementById('exampleSelect');
+    const statusText = document.getElementById('statusText');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const watViewer = document.getElementById('watViewer');
+    const consoleOutput = document.getElementById('consoleOutput');
+    const clearConsole = document.getElementById('clearConsole');
+
+    // Examples Code Dictionary
+    const examples = {
+      canvas: `extern "env" {
   fn fillRect(x: u32, y: u32, w: u32, h: u32, color: &str);
   fn random(): u32; // Returns 0-100
 }
@@ -73,38 +525,98 @@ fn explode(cx: u32, cy: u32) {
 }
 
 fn main(): u32 {
-  // Initial render
+  // Draw strawberry icons on startup
   drawStrawberry(250, 250);
   drawStrawberry(100, 100);
   drawStrawberry(400, 300);
   return 0;
+}`,
+      fibonacci: `extern "env" {
+  fn print(msg: &str);
 }
-    </textarea>
-    <button id="runBtn">Compile & Run to Canvas</button>
-    <a href="manual.html" target="_blank" style="display: block; margin-top: 15px; padding: 12px 24px; font-size: 14px; font-weight: bold; background: #333; color: white; border: 1px solid #555; border-radius: 8px; text-align: center; text-decoration: none; transition: background 0.2s;">
-      언어 스펙 설명서 보기
-    </a>
-    <div id="status" class="hint">Waiting to compile...</div>
-  </div>
 
-  <div class="main">
-    <canvas id="gameCanvas" width="500" height="500"></canvas>
-    <div class="hint">Edit the code and hit Compile.<br>Click anywhere on the canvas to run the Wasm <code>explode()</code> function.</div>
-  </div>
+fn fib(n: u32): u32 {
+  if n < 2 {
+    return n;
+  }
+  return fib(n - 1) + fib(n - 2);
+}
 
-  <script src="dist/scriptrawberry.js"></script>
+fn main(): u32 {
+  print("Starting Fibonacci calculation...");
+  let res = fib(10);
+  print("Fibonacci of 10 calculated successfully.");
+  return res;
+}`,
+      sroa: `extern "env" {
+  fn print(msg: &str);
+}
 
-  <script>
-    const codeEl = document.getElementById('code');
-    const runBtn = document.getElementById('runBtn');
-    const statusEl = document.getElementById('status');
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    
+struct Particle {
+  x: u32,
+  y: u32,
+  active: u1,
+}
+
+fn main(): u32 {
+  // This struct has no address taken, so it will be promoted to register locals (SROA)!
+  let p = Particle { x: 150, y: 300, active: 1b1 };
+  
+  print("Accessing struct v.x and v.y dynamically via direct register locals.");
+  
+  let sum = p.x + p.y;
+  return sum;
+}`,
+      loop: `extern "env" {
+  fn print(msg: &str);
+}
+
+fn main(): u32 {
+  let mut sum: u32 = 0;
+  let limit: u32 = 50;
+  
+  print("Executing a dynamic loop compile path for range up to 50...");
+  
+  for i in 0..limit {
+    sum = sum + i;
+  }
+  
+  print("Loop finished successfully.");
+  return sum;
+}`
+    };
+
+    // Load initial code
+    codeEl.value = examples.canvas;
+
+    // Tab controller
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
+
+    // Console helper
+    function appendConsoleLine(text, type = 'normal') {
+      const line = document.createElement('div');
+      line.className = `console-line ${type}`;
+      line.textContent = text;
+      consoleOutput.appendChild(line);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    clearConsole.addEventListener('click', () => {
+      consoleOutput.innerHTML = '<div class="console-line system">Console cleared.</div>';
+    });
+
     let wasmExports = null;
-
-    // FFI Setup
     let wasmInstance = null;
+
+    // FFI importObject
     const importObject = {
       env: {
         fillRect: (x, y, w, h, ptr, len) => {
@@ -117,39 +629,57 @@ fn main(): u32 {
         },
         random: () => {
           return Math.floor(Math.random() * 101);
+        },
+        print: (ptr, len) => {
+          if (!wasmInstance) return;
+          const memory = wasmInstance.exports.memory;
+          const buffer = new Uint8Array(memory.buffer, ptr, len);
+          const text = new TextDecoder('utf-8').decode(buffer);
+          appendConsoleLine(`[Wasm Print] ${text}`, 'ffi');
         }
       }
     };
 
     async function compileAndRun() {
-      statusEl.textContent = 'Compiling...';
-      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-
+      statusText.textContent = 'Compiling...';
+      statusIndicator.className = 'status-indicator loading';
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear Canvas
+      
       try {
         const code = codeEl.value;
         const startTime = performance.now();
         
-        // Use our new Compiler Core API directly!
+        // 1. Generate WAT to display
+        const watCode = ScriptRowberry.compileToWat(code);
+        watViewer.textContent = watCode;
+
+        // 2. Generate WASM Binary and instantiate
         const wasmBytecode = await ScriptRowberry.compileToWasm(code);
-        
         const compileTime = performance.now() - startTime;
         
         const { instance } = await WebAssembly.instantiate(wasmBytecode, importObject);
         wasmInstance = instance;
         wasmExports = instance.exports;
         
-        // Execute main
+        // 3. Execute main
         const res = wasmExports.main();
         
-        statusEl.innerHTML = `<span style="color:#0f0">Compiled in ${compileTime.toFixed(2)}ms!</span> (Main returned ${res})`;
+        statusText.textContent = `Compiled in ${compileTime.toFixed(1)}ms!`;
+        statusIndicator.className = 'status-indicator success';
+
+        appendConsoleLine(`Compilation succeeded in ${compileTime.toFixed(1)}ms.`, 'success');
+        appendConsoleLine(`[main()] Returned value: ${res}`, 'normal');
 
       } catch (err) {
-        statusEl.innerHTML = `<span style="color:#f33">Compilation Error: ${err.message}</span>`;
+        statusText.textContent = 'Compilation failed';
+        statusIndicator.className = 'status-indicator error';
+        watViewer.textContent = `Error details: \n${err.message}`;
+        appendConsoleLine(`Error: ${err.message}`, 'error');
         console.error(err);
       }
     }
 
-    // Handle Canvas Clicks
+    // Canvas click event trigger Wasm explode
     canvas.addEventListener('mousedown', (e) => {
       if (!wasmExports || !wasmExports.explode) return;
       
@@ -157,13 +687,28 @@ fn main(): u32 {
       const x = Math.floor(e.clientX - rect.left);
       const y = Math.floor(e.clientY - rect.top);
       
-      // Call the Wasm function natively!
+      appendConsoleLine(`Canvas click detected at (${x}, ${y}) - triggering explode().`, 'system');
       wasmExports.explode(x, y);
+    });
+
+    // Handle example loading
+    exampleSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (examples[val]) {
+        codeEl.value = examples[val];
+        appendConsoleLine(`Loaded example template: ${val}`, 'system');
+        
+        // Auto navigate tabs for better UX
+        const tabToActivate = val === 'canvas' ? 'canvasTab' : 'consoleTab';
+        document.querySelector(`.tab[data-target="${tabToActivate}"]`).click();
+
+        compileAndRun();
+      }
     });
 
     runBtn.addEventListener('click', compileAndRun);
 
-    // Initial compile on load
+    // Run compile on start
     compileAndRun();
   </script>
 </body>
