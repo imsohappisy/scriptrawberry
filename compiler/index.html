@@ -406,7 +406,6 @@
   </header>
 
   <div class="container">
-    <!-- Left Panel: Code Editor -->
     <div class="editor-section">
       <div class="section-title">
         <span>Source Code (.scrb)</span>
@@ -415,7 +414,6 @@
       <textarea id="code" spellcheck="false"></textarea>
     </div>
 
-    <!-- Right Panel: Viewers -->
     <div class="viewer-section">
       <div class="tabs">
         <div class="tab active" data-target="canvasTab">Interactive Canvas</div>
@@ -423,7 +421,6 @@
         <div class="tab" data-target="consoleTab">Console Log</div>
       </div>
 
-      <!-- Tab Content: Canvas -->
       <div class="tab-content active" id="canvasTab">
         <div class="canvas-container">
           <canvas id="gameCanvas" width="500" height="500"></canvas>
@@ -434,12 +431,10 @@
         </div>
       </div>
 
-      <!-- Tab Content: WAT Code -->
       <div class="tab-content" id="watTab">
         <div class="code-viewer" id="watViewer">Compile code to view WebAssembly Text Format...</div>
       </div>
 
-      <!-- Tab Content: Console -->
       <div class="tab-content" id="consoleTab">
         <div class="console-container">
           <div class="console-output" id="consoleOutput">
