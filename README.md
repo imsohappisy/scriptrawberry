@@ -216,7 +216,8 @@ index.html         — 메인 실험 페이지 및 웹 플레이그라운드
 
 ## Playground 접속
 ScriptRowberry가 브라우저에서 얼마나 빠르게 Wasm으로 컴파일되고 캔버스를 그리는지 직접 눈으로 확인해 보세요.
-- [Web Playground 체험하기](https://imsohappisy.github.io/scriptrawberry/)
+- [로컬 플레이그라운드 파일 열기 (상대 경로)](./index.html)
+- [Web Playground 체험하기 (GitHub Pages)](https://imsohappisy.github.io/scriptrawberry/)
 
 ## 상세 스펙 문서
 자세한 언어 스펙과 토크나이징 룰 등은 설명서를 참고하세요.

@@ -179,7 +179,8 @@ fn main(): u32 {
 
 See for yourself how fast ScriptRowberry compiles to Wasm and renders onto the canvas right inside your browser.
 
-* [Try the Web Playground](https://imsohappisy.github.io/scriptrawberry/)
+* [Open Local Playground (Relative Link)](./index.html)
+* [Try the Web Playground (GitHub Pages)](https://imsohappisy.github.io/scriptrawberry/)
 
 
 ## Detailed Specification Document
