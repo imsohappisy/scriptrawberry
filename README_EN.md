@@ -187,7 +187,7 @@ See for yourself how fast ScriptRowberry compiles to Wasm and renders onto the c
 
 
 
-* [Language Manual](./manual.html)
+* [Language Manual](https://imsohappisy.github.io/scriptrawberry/manual.html)
 
 ## License
 Apache License 2.0
